@@ -43,13 +43,16 @@ help:
 	@echo "  doctest   to run all doctests embedded in the documentation (if enabled)"
 
 bclean:
-	@-rm -rf _build/*
+	@rm -rf _build/*
 
 clean:
-	@-rm -f *~ foo*
+	@(rm -f *~ foo*; \
+	  for dir in `ls -d xpa-*`; do \
+	    cd $$dir; make clean; cd ..; \
+	  done; \
+	)	
 
-
-release: install sdist html installhtml ftp
+release: clean install sdist html installhtml ftp
 
 install:
 	@python setup.py install --prefix=$$HOME/python
