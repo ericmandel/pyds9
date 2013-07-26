@@ -1,0 +1,38 @@
+Changelog for pyds9
+
+version 1.7	July 2013
+		xpa updated to version 2.1.15
+		add support for Windows
+
+version 1.6	March 2013
+		add support for astropy fits
+
+version 1.5	August 2012
+		fixed bug in set_np2arr when arrays were not contiguous (rot90)
+		documentation additions
+
+version 1.4	May 2012
+		xpa updated to version 2.1.14
+
+version 1.3	September 2011
+	        ensure that numpy arrays are in C order when sent to ds9
+		send numpy uint16 and int64 data to ds9 for display
+		convert numpy int8 to int16, and uint32 to int64 for display
+		xpa updated to version 2.1.13
+
+version 1.2	October 2010
+		pyfits type checks are now made using the right pyfits object
+		set PYDS9_NOXPANS in shell to avoid starting xpans (needed to
+		work around problem in OSX cron jobs)
+		March 2011
+		np2arr was sending xdim and ydim params to ds9 switched
+		get now handles a return of None properly
+
+version 1.1	August 2010
+		ds9 class is now a "new-style" class derived from "object"
+		start param now accepts a list or string of ds9 command options
+		xpa updated to version 2.1.12
+
+version 1.0	November 2009
+		initial version
+

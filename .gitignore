@@ -1,0 +1,11 @@
+*.[oa]
+*~
+*.so
+*.bak
+foo*
+casa.fits
+build/
+_build/
+_static/
+_templates/
+dist/
