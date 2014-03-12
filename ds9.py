@@ -176,12 +176,12 @@ def ds9_openlist(target='DS9:*', n=1024):
     """
     tlist = xpa.xpaaccess(target, None, n)
     if not tlist:
-	raise ValueError, 'no active ds9 found for target: %s' % target
+        raise ValueError, 'no active ds9 found for target: %s' % target
     else:
-	ds9list = []
-	for item in tlist:
-	    ds9list.append(ds9(item.split()[0]))
-	return ds9list
+        ds9list = []
+        for item in tlist:
+            ds9list.append(ds9(item.split()[0]))
+        return ds9list
 
 class ds9(object):
     """
@@ -269,8 +269,8 @@ class ds9(object):
         Using verification allows ds9 methods to used in try/except constructs,
         at the expense of a slight decrease in performance.
         """
-	tlist = xpa.xpaaccess(target, None, 1024)
-	if not tlist and start:
+        tlist = xpa.xpaaccess(target, None, 1024)
+        if not tlist and start:
             if '?' in target or '*' in target: 
                 target = "ds9"
             try:
@@ -286,9 +286,9 @@ class ds9(object):
                 if tlist: break
                 time.sleep(1)
         if not tlist:
-	    raise ValueError, 'no active ds9 running for target: %s' % target
-	elif len(tlist) > 1:
-	    a = tlist[0].split()
+            raise ValueError, 'no active ds9 running for target: %s' % target
+        elif len(tlist) > 1:
+            a = tlist[0].split()
             if 'XPA_METHOD' in os.environ.keys():
                 method = os.environ['XPA_METHOD']
             else:
@@ -297,19 +297,19 @@ class ds9(object):
                 s = 'local file'
             else:
                 s = 'ip:port'
-	    print 'More than one ds9 is running for target %s:' % target
+            print 'More than one ds9 is running for target %s:' % target
             for l in tlist: print "  %s" % l
-	    print 'Use a specific name or id to construct a ds9 object, e.g.:'
-	    print "  d = ds9('%s')" % a[0].split()[0].split(':')[1]
-	    print "  d = ds9('%s')" % a[0]
-	    print "  d = ds9('%s')" % a[1]
+            print 'Use a specific name or id to construct a ds9 object, e.g.:'
+            print "  d = ds9('%s')" % a[0].split()[0].split(':')[1]
+            print "  d = ds9('%s')" % a[0]
+            print "  d = ds9('%s')" % a[1]
             print "The '%s' id (3rd example) will always be unique.\n" % s
-	    raise ValueError, 'too many ds9 instances for target: %s' % target
-	else:
-	    a = tlist[0].split()
-	    self.__dict__['target']  = target
-	    self.__dict__['id']  = a[1]
-	    self.verify = verify
+            raise ValueError, 'too many ds9 instances for target: %s' % target
+        else:
+            a = tlist[0].split()
+            self.__dict__['target']  = target
+            self.__dict__['id']  = a[1]
+            self.verify = verify
 
     def __setattr__(self, attrname, value):
         """
@@ -325,8 +325,8 @@ class ds9(object):
         """
         An internal test to make sure that ds9 is still running."
         """
-	if self.verify and not xpa.xpaaccess(self.id, None, 1):
-	    raise ValueError, 'ds9 is no longer running (%s)' % self.id
+        if self.verify and not xpa.xpaaccess(self.id, None, 1):
+            raise ValueError, 'ds9 is no longer running (%s)' % self.id
 
     def get(self, paramlist=None):
         """
@@ -348,7 +348,7 @@ class ds9(object):
         
         Note that all access points return data as python strings.
         """
-	self._selftest()
+        self._selftest()
         x = xpa.xpaget(self.id, paramlist, 1)
         if len(x) > 0:
             if not paramlist in self._nostrip: x[0] = x[0].strip()
@@ -392,7 +392,7 @@ class ds9(object):
         and xpaget programs.
 
         """
-	self._selftest()
+        self._selftest()
         if ds9Globals["numpy"] and type(buf) == numpy.ndarray:
                 s = buf.tostring()
         elif type(buf) == array.array:
@@ -408,7 +408,7 @@ class ds9(object):
         Once a ds9 object has been initialized, use 'info' to send xpa info
         messages to ds9. (NB: ds9 currently does not support info messages.)
         """
-	self._selftest()
+        self._selftest()
         return xpa.xpainfo(self.id, paramlist, 1)
             
     def access(self):
@@ -418,9 +418,9 @@ class ds9(object):
         The 'access' method returns the xpa id of the current instance of ds9,
         by making a direct contact with ds9 itself.
         """
-	self._selftest()
+        self._selftest()
         x = xpa.xpaaccess(self.id, None, 1)
-	return x[0]
+        return x[0]
             
     if ds9Globals["pyfits"]:
         def get_pyfits(self):
@@ -440,7 +440,7 @@ class ds9(object):
               (1024, 1024)
 
             """
-	    self._selftest()
+            self._selftest()
             imgData = self.get('fits')
             imgString = StringIO.StringIO(imgData)
             return pyfits.open(imgString)
@@ -461,7 +461,7 @@ class ds9(object):
             A return value of 1 indicates that ds9 was contacted successfully,
             while a return value of 0 indicates a failure.
             """
-	    self._selftest()
+            self._selftest()
             if not ds9Globals["pyfits"]:
                 raise ValueError, 'set_pyfits not defined (pyfits not found)'
             if type(hdul) != pyfits.HDUList:
@@ -508,8 +508,8 @@ class ds9(object):
               51.0
 
             """
- 	    self._selftest()
-	    w = int(self.get('fits width'))
+            self._selftest()
+            w = int(self.get('fits width'))
             h = int(self.get('fits height'))
             bp = int(self.get('fits bitpix'))
             s = self.get('array')
@@ -548,7 +548,7 @@ class ds9(object):
             Also note that np.int8 is sent to ds9 as int16 data, np.uint32 is
             sent as int64 data, and np.float16 is sent as float32 data.
             """
- 	    self._selftest()
+            self._selftest()
             if type(arr) != numpy.ndarray:
                 raise ValueError, 'requires numpy.ndarray as input'
             if dtype and dtype != arr.dtype:
