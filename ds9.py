@@ -493,7 +493,7 @@ class ds9(object):
             """
             :rtype: numpy array
 
-            To read a FITS file or an array from ds9 into a numnpy array, use
+            To read a FITS file or an array from ds9 into a numpy array, use
             the 'get_arr2np' method. It takes no arguments and returns the
             np array::
             
@@ -511,9 +511,13 @@ class ds9(object):
  	    self._selftest()
 	    w = int(self.get('fits width'))
             h = int(self.get('fits height'))
+            d = int(self.get('fits depth'))
             bp = int(self.get('fits bitpix'))
             s = self.get('array')
-            arr = numpy.fromstring(s, dtype=_bp2np(bp)).reshape((w,h))
+            if d > 1:
+                arr = numpy.fromstring(s, dtype=_bp2np(bp)).reshape((d,h,w))
+            else:
+                arr = numpy.fromstring(s, dtype=_bp2np(bp)).reshape((h,w))
             if sys.byteorder != 'big': arr.byteswap(True)
             return arr
 
