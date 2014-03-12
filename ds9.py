@@ -518,7 +518,7 @@ class ds9(object):
                 arr = numpy.fromstring(s, dtype=_bp2np(bp)).reshape((d,h,w))
             else:
                 arr = numpy.fromstring(s, dtype=_bp2np(bp)).reshape((h,w))
-            if sys.byteorder != 'big': arr.byteswap(True)
+            #if sys.byteorder != 'big': arr.byteswap(True)
             return arr
 
         def set_np2arr(self, arr, dtype=None):
