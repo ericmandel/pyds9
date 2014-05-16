@@ -1,4 +1,4 @@
 include COPYING
 include changelog
 include test.fits
-recursive-include xpa-2.1.15 *
+recursive-include xpa *

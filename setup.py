@@ -19,7 +19,7 @@ else:
     xpans = 'xpans'
 
 # make command for xpa
-xpadir='xpa-2.1.15'
+xpadir='xpa'
 def make(which):
     curdir=os.getcwd()
     srcDir=os.path.join(os.path.dirname(os.path.abspath(__file__)),xpadir)

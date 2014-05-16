@@ -1,5 +1,9 @@
 Changelog for pyds9
 
+version github	May 2014
+		switched over to github, so versions are not needed
+		renamed xpa-2.1.15 to xpa
+	
 version 1.7	July 2013
 		xpa updated to version 2.1.15
 		add support for Windows

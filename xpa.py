@@ -22,7 +22,7 @@ def _find_shlib(_libbase):
         if os.path.exists(_fname):
             return _fname
     # try current directory
-    _fname = os.path.join('./xpa-2.1.15', _libname)
+    _fname = os.path.join('./xpa', _libname)
     if os.path.exists(_fname):
         return _fname
     return None
