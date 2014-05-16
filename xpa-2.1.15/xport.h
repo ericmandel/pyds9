@@ -21,24 +21,30 @@
 #include <process.h>
 #include <io.h>
 
-#ifndef	EINPROGRESS
+#ifdef	EINPROGRESS
+#undef  EINPROGRESS
+#endif
 #define EINPROGRESS	WSAEINPROGRESS
+#ifdef	EINTR
+#undef  EINTR	
 #endif
-#ifndef	EINTR
 #define EINTR		WSAEINTR
+#ifdef ETIMEDOUT
+#undef  ETIMEDOUT
 #endif
-#ifndef ETIMEDOUT
 #define ETIMEDOUT	WSAETIMEDOUT
+#ifdef ECONNREFUSED
+#undef  ECONNREFUSED
 #endif
-#ifndef ECONNREFUSED
 #define ECONNREFUSED	WSAECONNREFUSED
+#ifdef EWOULDBLOCK
+#undef  EWOULDBLOCK
 #endif
-#ifndef EWOULDBLOCK
 #define EWOULDBLOCK	WSAEWOULDBLOCK
+#ifdef EAGAIN
+#undef  EAGAIN	
 #endif
-#ifndef EAGAIN
 #define EAGAIN		WSAEWOULDBLOCK
-#endif
 
 #else
 
