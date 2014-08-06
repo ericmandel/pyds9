@@ -12,7 +12,7 @@ import xpa
 """
 ds9.py connects python and ds9 via the xpa messaging system:
 
-- The ds9 class constructor connects to a single instance of a running ds9. 
+- The ds9 class constructor connects to a single instance of a running ds9.
 - The ds9 object supports 'set' and 'get' methods to communicate with ds9.
 - Send/retrieve numpy arrays and pyfits (or astropy) hdulists to/from ds9.
 - The ds9_targets() function lists ds9 programs running on your system.
@@ -142,7 +142,7 @@ def ds9_targets(target='DS9:*'):
 
     :rtype: list of available targets matching template (name and id)
 
-    To see all actively running ds9 instances for a given target, use the 
+    To see all actively running ds9 instances for a given target, use the
     ds9_targets() routine::
 
       >>> ds9_targets()
@@ -163,11 +163,11 @@ def ds9_openlist(target='DS9:*', n=1024):
     the target template and an (optional) max target count, and the routine
     returns a list of ds9 objects. For example, assuming 3 instances of ds9
     are running with names foo1, foo2, foo3::
-    
+
         >>> ds9list = ds9_openlist("foo*")
         >>> for d in ds9list:
         ...     print d.target, d.id
-        ... 
+        ...
         DS9:foo1 a000104:56249
         DS9:foo2 a000104:56254
         DS9:foo3 a000104:56256
@@ -183,11 +183,11 @@ def ds9_openlist(target='DS9:*', n=1024):
             ds9list.append(ds9(item.split()[0]))
         return ds9list
 
-class ds9(object):
+class Ds9(object):
     """
-    The ds9 class supports communication with a running ds9 program via the xpa
+    The Ds9 class supports communication with a running ds9 program via the xpa
     messaging system. All of ds9's xpa access points are available via the
-    ds9.get() and ds9.set() methods:
+    Ds9.get() and Ds9.set() methods:
 
     - str = get(paramlist): get data or info from ds9
     - n = set(paramlist, [buf, [blen]]): send data or commands to ds9
@@ -223,12 +223,12 @@ class ds9(object):
     def __init__(self, target='DS9:*', start=True, wait=10, verify=True):
         """
         :param target: the ds9 target name or id (default is all ds9 instances)
-        :param start:  start ds9 if its not already running (optional: instead 
+        :param start:  start ds9 if its not already running (optional: instead
          of True, you can specify a string or a list of ds9 command line args)
         :param wait: seconds to wait for ds9 to start
         :param verify: perform xpaaccess check before each set or get?
 
-        :rtype: ds9 object connected to a single instance of ds9
+        :rtype: Ds9 object connected to a single instance of ds9
 
         The ds9() contructor takes a ds9 target as its main argument. If start
         is True (default), the ds9 program will be started automatically if its
@@ -242,7 +242,7 @@ class ds9(object):
         a list of the actively running programs and will be asked to use one of
         them to specify which ds9 is wanted::
 
-          >>> ds9()
+          >>> Ds9()
           More than one ds9 is running for target DS9:*:
           DS9:foo1 838e29d4:42873
           DS9:foo2 838e29d4:35739
@@ -253,13 +253,13 @@ class ds9(object):
           The 'ip:port' id (3rd example) will always be unique.
           ...
           ValueError: too many ds9 instances running for target: DS9:*
-        
+
         You then can choose one of these to pass to the contructor::
 
-           d = ds9('838e29d4:35739')
+           d = Ds9('838e29d4:35739')
 
         Of course, you can always specify a name for this instance of ds9. A
-        unique target name is especially appropriate if you want to start up 
+        unique target name is especially appropriate if you want to start up
         ds9 with a specified command line. This is because pyds9 will start up
         ds9 only if a ds9 with the target name is not already running.
 
@@ -271,7 +271,7 @@ class ds9(object):
         """
         tlist = xpa.xpaaccess(target, None, 1024)
         if not tlist and start:
-            if '?' in target or '*' in target: 
+            if '?' in target or '*' in target:
                 target = "ds9"
             try:
                 args = shlex.split(start)
@@ -299,10 +299,10 @@ class ds9(object):
                 s = 'ip:port'
             print 'More than one ds9 is running for target %s:' % target
             for l in tlist: print "  %s" % l
-            print 'Use a specific name or id to construct a ds9 object, e.g.:'
-            print "  d = ds9('%s')" % a[0].split()[0].split(':')[1]
-            print "  d = ds9('%s')" % a[0]
-            print "  d = ds9('%s')" % a[1]
+            print 'Use a specific name or id to construct a Ds9 object, e.g.:'
+            print "  d = Ds9('%s')" % a[0].split()[0].split(':')[1]
+            print "  d = Ds9('%s')" % a[0]
+            print "  d = Ds9('%s')" % a[1]
             print "The '%s' id (3rd example) will always be unique.\n" % s
             raise ValueError, 'too many ds9 instances for target: %s' % target
         else:
@@ -334,9 +334,9 @@ class ds9(object):
 
         :rtype: returned data or info (as a string)
 
-        Once a ds9 object has been initialized, use 'get' to retrieve data from
+        Once a Ds9 object has been initialized, use 'get' to retrieve data from
         ds9 by specifying the standard xpa paramlist::
-        
+
           >>> d.get("file")
           '/home/eric/python/ds9/test.fits'
           >>> d.get("fits height")
@@ -345,7 +345,7 @@ class ds9(object):
           '15'
           >>> d.get("fits bitpix")
           '32'
-        
+
         Note that all access points return data as python strings.
         """
         self._selftest()
@@ -362,19 +362,19 @@ class ds9(object):
 
         :rtype: 1 for success, 0 for failure
 
-        Once a ds9 object has been initialized, use 'set' to send data and
+        Once a Ds9 object has been initialized, use 'set' to send data and
         commands to ds9::
-        
+
           >>> d.set("file /home/eric/data/casa.fits")
           1
-        
+
         A return value of 1 indicates that ds9 was contacted successfully, while
         a return value of 0 indicates a failure.
-        
+
         To send data (as well as the paramlist) to ds9, specify the data buffer
-        in the argument list. The data buffer must either be a string, a 
+        in the argument list. The data buffer must either be a string, a
         numpy.ndarray,  or an array.array::
-        
+
           >>> d.set("array [xdim=1024 ydim=1024 bitpix=-32]", arr)
 
         Sending both a paramlist and data is the canonical way to send a region
@@ -400,17 +400,17 @@ class ds9(object):
         else:
             s = buf
         return xpa.xpaset(self.id, paramlist, s, blen, 1)
-            
+
     def info(self, paramlist):
         """
         :rtype: 1 for success, 0 for failure
 
-        Once a ds9 object has been initialized, use 'info' to send xpa info
+        Once a Ds9 object has been initialized, use 'info' to send xpa info
         messages to ds9. (NB: ds9 currently does not support info messages.)
         """
         self._selftest()
         return xpa.xpainfo(self.id, paramlist, 1)
-            
+
     def access(self):
         """
         :rtype: xpa target name and id
@@ -421,15 +421,15 @@ class ds9(object):
         self._selftest()
         x = xpa.xpaaccess(self.id, None, 1)
         return x[0]
-            
+
     if ds9Globals["pyfits"]:
         def get_pyfits(self):
             """
             :rtype: pyfits hdulist
 
-            To read FITS data or a raw array from ds9 into pyfits, use the 
+            To read FITS data or a raw array from ds9 into pyfits, use the
             'get_pyfits' method. It takes no args and returns an hdu list::
-            
+
               >>> hdul = d.get_pyfits()
               >>> hdul.info()
               Filename: StringIO.StringIO
@@ -444,7 +444,7 @@ class ds9(object):
             imgData = self.get('fits')
             imgString = StringIO.StringIO(imgData)
             return pyfits.open(imgString)
-            
+
         def set_pyfits(self, hdul):
             """
             :param hdul: pyfits hdulist
@@ -454,7 +454,7 @@ class ds9(object):
             After manipulating or otherwise modifying a pyfits hdulist (or
             making a new one), you can display it in ds9 using the 'set_pyfits'
             method, which takes the hdulist as its sole argument::
-            
+
               >>> d.set_pyfits(nhdul)
               1
 
@@ -496,7 +496,7 @@ class ds9(object):
             To read a FITS file or an array from ds9 into a numpy array, use
             the 'get_arr2np' method. It takes no arguments and returns the
             np array::
-            
+
               >>> d.get("file")
               '/home/eric/data/casa.fits[EVENTS]'
               >>> arr = d.get_arr2np()
@@ -531,13 +531,13 @@ class ds9(object):
             After manipulating or otherwise modifying a numpy array (or making
             a new one), you can display it in ds9 using the 'set_np2arr' method,
             which takes the array as its first argument::
-            
+
               >>> d.set_np2arr(arr)
               1
-            
+
             A return value of 1 indicates that ds9 was contacted successfully,
             while a return value of 0 indicates a failure.
-        
+
             An optional second argument specifies a datatype into which the
             array will be converted before being sent to ds9. This is
             important in the case where the array has datatype np.uint64,
@@ -617,7 +617,7 @@ if __name__ == '__main__':
     l = ds9_targets("pytest")
     print "target list:\n",l
 
-    d = ds9(l[0].split()[1])
+    d = Ds9(l[0].split()[1])
     print "connected to ds9 with id %s" % d.id
 
     print "connected to ds9 with id %s" % d.id
@@ -666,14 +666,14 @@ if __name__ == '__main__':
     casa = os.getcwd() + "/casa.fits"
     if os.path.exists(casa):
         print "starting ds9 (no args) ..."
-        d2 = ds9('pytest2')
+        d2 = Ds9('pytest2')
         d2.set("file " + casa)
 
         print "starting ds9 (string args) ..."
-        d3 = ds9('pytest3', start=["-grid", "-cmap", "sls", casa])
+        d3 = Ds9('pytest3', start=["-grid", "-cmap", "sls", casa])
 
         print "starting ds9 (list args) ..."
-        d4 = ds9('pytest4', start=["-grid", "-cmap", "heat", casa])
+        d4 = Ds9('pytest4', start=["-grid", "-cmap", "heat", casa])
 
         print "testing ds9_targets ... "
         print ds9_targets()
