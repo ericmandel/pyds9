@@ -588,6 +588,20 @@ class Ds9(object):
             raise ValueError, 'set_np2arr not defined (numpy not found)'
 
 
+class ds9(Ds9):
+    """
+    This is a backwards-compatibility "shell" class that acts like the Ds9 class
+    but has the old name.  In the future, you should switch to using the new
+    name (``Ds9``).
+    """
+    def __init__(self, *args, **kwargs):
+        from warnings import warn
+
+        warn('The class name "ds9" is deprecated.  In the future, use "Ds9" '
+             'instead.')
+
+        super(ds9, self).__init__(*args, **kwargs)
+
 # start xpans, if necessary
 # it seems that this must be done at import time, so that we can sense the
 # case where xpa is not installed, and ds9 is started before python
