@@ -183,11 +183,11 @@ def ds9_openlist(target='DS9:*', n=1024):
             ds9list.append(ds9(item.split()[0]))
         return ds9list
 
-class Ds9(object):
+class DS9(object):
     """
-    The Ds9 class supports communication with a running ds9 program via the xpa
+    The DS9 class supports communication with a running ds9 program via the xpa
     messaging system. All of ds9's xpa access points are available via the
-    Ds9.get() and Ds9.set() methods:
+    DS9.get() and DS9.set() methods:
 
     - str = get(paramlist): get data or info from ds9
     - n = set(paramlist, [buf, [blen]]): send data or commands to ds9
@@ -228,7 +228,7 @@ class Ds9(object):
         :param wait: seconds to wait for ds9 to start
         :param verify: perform xpaaccess check before each set or get?
 
-        :rtype: Ds9 object connected to a single instance of ds9
+        :rtype: DS9 object connected to a single instance of ds9
 
         The ds9() contructor takes a ds9 target as its main argument. If start
         is True (default), the ds9 program will be started automatically if its
@@ -242,7 +242,7 @@ class Ds9(object):
         a list of the actively running programs and will be asked to use one of
         them to specify which ds9 is wanted::
 
-          >>> Ds9()
+          >>> DS9()
           More than one ds9 is running for target DS9:*:
           DS9:foo1 838e29d4:42873
           DS9:foo2 838e29d4:35739
@@ -256,7 +256,7 @@ class Ds9(object):
 
         You then can choose one of these to pass to the contructor::
 
-           d = Ds9('838e29d4:35739')
+           d = DS9('838e29d4:35739')
 
         Of course, you can always specify a name for this instance of ds9. A
         unique target name is especially appropriate if you want to start up
@@ -299,10 +299,10 @@ class Ds9(object):
                 s = 'ip:port'
             print 'More than one ds9 is running for target %s:' % target
             for l in tlist: print "  %s" % l
-            print 'Use a specific name or id to construct a Ds9 object, e.g.:'
-            print "  d = Ds9('%s')" % a[0].split()[0].split(':')[1]
-            print "  d = Ds9('%s')" % a[0]
-            print "  d = Ds9('%s')" % a[1]
+            print 'Use a specific name or id to construct a DS9 object, e.g.:'
+            print "  d = DS9('%s')" % a[0].split()[0].split(':')[1]
+            print "  d = DS9('%s')" % a[0]
+            print "  d = DS9('%s')" % a[1]
             print "The '%s' id (3rd example) will always be unique.\n" % s
             raise ValueError, 'too many ds9 instances for target: %s' % target
         else:
@@ -334,7 +334,7 @@ class Ds9(object):
 
         :rtype: returned data or info (as a string)
 
-        Once a Ds9 object has been initialized, use 'get' to retrieve data from
+        Once a DS9 object has been initialized, use 'get' to retrieve data from
         ds9 by specifying the standard xpa paramlist::
 
           >>> d.get("file")
@@ -362,7 +362,7 @@ class Ds9(object):
 
         :rtype: 1 for success, 0 for failure
 
-        Once a Ds9 object has been initialized, use 'set' to send data and
+        Once a DS9 object has been initialized, use 'set' to send data and
         commands to ds9::
 
           >>> d.set("file /home/eric/data/casa.fits")
@@ -405,7 +405,7 @@ class Ds9(object):
         """
         :rtype: 1 for success, 0 for failure
 
-        Once a Ds9 object has been initialized, use 'info' to send xpa info
+        Once a DS9 object has been initialized, use 'info' to send xpa info
         messages to ds9. (NB: ds9 currently does not support info messages.)
         """
         self._selftest()
@@ -588,16 +588,16 @@ class Ds9(object):
             raise ValueError, 'set_np2arr not defined (numpy not found)'
 
 
-class ds9(Ds9):
+class ds9(DS9):
     """
-    This is a backwards-compatibility "shell" class that acts like the Ds9 class
+    This is a backwards-compatibility "shell" class that acts like the DS9 class
     but has the old name.  In the future, you should switch to using the new
-    name (``Ds9``).
+    name (``DS9``).
     """
     def __init__(self, *args, **kwargs):
         from warnings import warn
 
-        warn('The class name "ds9" is deprecated.  In the future, use "Ds9" '
+        warn('The class name "ds9" is deprecated.  In the future, use "DS9" '
              'instead.')
 
         super(ds9, self).__init__(*args, **kwargs)
@@ -631,7 +631,7 @@ if __name__ == '__main__':
     l = ds9_targets("pytest")
     print "target list:\n",l
 
-    d = Ds9(l[0].split()[1])
+    d = DS9(l[0].split()[1])
     print "connected to ds9 with id %s" % d.id
 
     print "connected to ds9 with id %s" % d.id
@@ -680,14 +680,14 @@ if __name__ == '__main__':
     casa = os.getcwd() + "/casa.fits"
     if os.path.exists(casa):
         print "starting ds9 (no args) ..."
-        d2 = Ds9('pytest2')
+        d2 = DS9('pytest2')
         d2.set("file " + casa)
 
         print "starting ds9 (string args) ..."
-        d3 = Ds9('pytest3', start=["-grid", "-cmap", "sls", casa])
+        d3 = DS9('pytest3', start=["-grid", "-cmap", "sls", casa])
 
         print "starting ds9 (list args) ..."
-        d4 = Ds9('pytest4', start=["-grid", "-cmap", "heat", casa])
+        d4 = DS9('pytest4', start=["-grid", "-cmap", "heat", casa])
 
         print "testing ds9_targets ... "
         print ds9_targets()

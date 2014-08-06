@@ -27,7 +27,7 @@ To run:
         ... (startup messages) ...
 	>>> from pyds9 import *
 	>>> print ds9_targets()
-	>>> d = Ds9()
+	>>> d = DS9()
 
 etc.
 
