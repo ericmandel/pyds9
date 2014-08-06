@@ -25,9 +25,9 @@ To run:
 	# start up python
 	> python
         ... (startup messages) ...
-	>>> from ds9 import *
+	>>> from pyds9 import *
 	>>> print ds9_targets()
-	>>> d = ds9()
+	>>> d = DS9()
 
 etc.
 

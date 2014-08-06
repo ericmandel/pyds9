@@ -6,13 +6,13 @@
 Welcome to pyds9's documentation!
 =================================
 
-.. module:: ds9
+.. module:: pyds9
 
 **A Python Connection to DS9 via XPA**
 
-The XPA messaging system (http://hea-www.harvard.edu/saord/xpa) provides 
+The XPA messaging system (http://hea-www.harvard.edu/saord/xpa) provides
 seamless communication between many kinds of Unix programs, including Tcl/Tk
-programs such as ds9. The pyds9 module uses a Python interface to XPA to 
+programs such as ds9. The pyds9 module uses a Python interface to XPA to
 communicate with ds9. It supports communication with all of ds9's XPA access
 points. See http://hea-www.harvard.edu/saord/ds9/ref/xpa.html for more info
 on DS9's access points.
@@ -38,18 +38,18 @@ or to install in a user-specified directory::
 
 	# install in specified directory
 	> python setup.py install --prefix=<install-dir>
-	> setenv PYTHONPATH <install-dir>lib/python2.x/site-packages 
+	> setenv PYTHONPATH <install-dir>lib/python2.x/site-packages
 
 To run::
 
 	# start up python
 	> python
         ... (startup messages) ...
-	>>> from ds9 import *
+	>>> from pyds9 import *
 	>>> print ds9_targets()
-	>>> d = ds9()
+	>>> d = Ds9()
 
-The setup.py install will build and install both the XPA shared library and 
+The setup.py install will build and install both the XPA shared library and
 the xpans name server. By default, the code generated for the shared object
 will match the address size of the host machine, i.e. 32-bit or 64-bit
 as the case may be. But on 64-bit Intel machines, the XPA build also will check
@@ -60,9 +60,9 @@ including an empty string).
 
 Contact saord@cfa.harvard.edu for help.
 
-**The DS9 Class:**
+**The Ds9 Class:**
 
-.. autoclass:: ds9
+.. autoclass:: Ds9
    :members: __init__, get, set, info, access, get_pyfits, set_pyfits, get_arr2np, set_np2arr
 
 **Auxiliary Routines:**
