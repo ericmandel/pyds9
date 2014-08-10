@@ -79,7 +79,7 @@ setup(name='pyds9',
     author='Bill Joye and Eric Mandel',
     author_email='saord@cfa.harvard.edu',
     url='http://hea-www.harvard.edu/saord/ds9/',
-    py_modules=['pyds9', 'xpa'],
+    py_modules=['pyds9', 'xpa', 'ds9'],
     data_files=[('', [xpadir+'/'+xpalib, xpadir+'/'+xpans])],
     cmdclass = {'build_py': my_build_py, 	 \
                 'install_data': my_install_data, \
