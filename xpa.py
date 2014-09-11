@@ -13,7 +13,7 @@ def _find_shlib(_libbase):
     _ulist=platform.uname()
     if _ulist[0] == 'Darwin':
         _libname = 'lib' + _libbase + '.dylib'
-    elif _ulist[0] == 'Windows':
+    elif ((_ulist[0] == 'Windows') or ((_ulist[0]).find('CYGWIN') != -1)):
         _libname = 'libxpa.dll'
     else:
         _libname = 'lib' + _libbase + '.so'
@@ -31,7 +31,7 @@ _libpath=_find_shlib('xpa')
 if _libpath:
     libxpa=ctypes.cdll.LoadLibrary(_libpath)
     _ulist=platform.uname()
-    if _ulist[0] == 'Windows':
+    if ((_ulist[0] == 'Windows') or ((_ulist[0]).find('CYGWIN') != -1)):
         libc=ctypes.cdll.msvcrt
     else:
         libc=ctypes.cdll.LoadLibrary(None)

@@ -11,7 +11,7 @@ ulist=platform.uname()
 if ulist[0] == 'Darwin':
     xpalib = 'libxpa.dylib'
     xpans = 'xpans'
-elif ulist[0] == 'Windows':
+elif ((ulist[0] == 'Windows') or (ulist[0].find('CYGWIN') != -1)):
     xpalib = 'libxpa.dll'
     xpans = 'xpans.exe'
 else:
@@ -48,7 +48,7 @@ def make(which):
 # rework build_py to make the xpa shared library as well
 class my_build_py(build_py.build_py):
     def run(self):
-        if platform.uname()[0] == 'Windows':
+        if ((platform.uname()[0] == 'Windows') or ((platform.uname()[0]).find('CYGWIN') != -1)):
             make('mingw-dll')
         else:
             make('all')
