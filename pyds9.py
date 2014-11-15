@@ -123,12 +123,12 @@ ds9_targets() routine).
 
 For ds9 versions prior to 5.7, you cannot (easily) register with xpans,
 but you can view ds9's File->XPA Information menu option and pass the value
-associated with XPA_METHOD directly to the Python ds9() constructor, e.g.:
+associated with XPA_METHOD directly to the Python DS9() constructor, e.g.:
 
-    d = ds9('a000101:12345')
+    d = DS9('a000101:12345')
 
 The good news is that new instances of ds9 will be registered with xpans, and
-will be known to ds9_targets() and the ds9() constructor.
+will be known to ds9_targets() and the DS9() constructor.
 """
             return 1
         else:
@@ -148,7 +148,7 @@ def ds9_targets(target='DS9:*'):
       >>> ds9_targets()
       ['DS9:foo1 838e29d4:42873', 'DS9:foo2 838e29d4:35739']
 
-    You then can pass one of the ids (or names) to the ds9() constructor.
+    You then can pass one of the ids (or names) to the DS9() constructor.
     """
     return xpa.xpaaccess(target, None, 1024)
 
@@ -230,7 +230,7 @@ class DS9(object):
 
         :rtype: DS9 object connected to a single instance of ds9
 
-        The ds9() contructor takes a ds9 target as its main argument. If start
+        The DS9() contructor takes a ds9 target as its main argument. If start
         is True (default), the ds9 program will be started automatically if its
         not already running.
 
