@@ -11,3 +11,6 @@ _static/
 _templates/
 dist/
 xpa/config.status
+xpa/Makefile
+xpa/conf.h
+
