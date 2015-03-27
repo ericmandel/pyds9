@@ -1,5 +1,8 @@
 Changelog for pyds9
 
+version github	March 27, 2015
+		explicitly pass endianness in DS9.set_np2arr(), thanks to @etaq.
+
 version github	September 2014
 		added code to support Cygwin install, thanks to Lance Simms.
 
