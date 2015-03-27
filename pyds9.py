@@ -590,8 +590,10 @@ class DS9(object):
 
             # note that this needs the "endian=" part because sometimes it's
             # left out completely
-            endianness = ''  # mainly this is for the "=" byteorder->native
-            if narr.dtype.byteorder == '<':
+            endianness = ''
+            if narr.dtype.byteorder == '=':
+                endianness = ',endian=' + sys.byteorder
+            elif narr.dtype.byteorder == '<':
                 endianness = ',endian=little'
             elif narr.dtype.byteorder == '>':
                 endianness = ',endian=big'
