@@ -73,14 +73,29 @@ if ds9Globals["numpy"]:
         """
         Convert numpy datatype to FITS bitpix
         """
-        if dtype == numpy.uint8:     return 8
-        elif dtype == numpy.int16:   return 16
-        elif dtype == numpy.int32:   return 32
-        elif dtype == numpy.int64:   return 64
-        elif dtype == numpy.float32: return -32
-        elif dtype == numpy.float64: return -64
-        elif dtype == numpy.uint16:  return -16
-        else: raise ValueError, 'unsupported dtype: %s' % dtype
+        if dtype.kind == 'u':
+            #unsigned ints
+            if dtype.itemsize == 1:
+                return 8
+            if dtype.itemsize == 2:
+                # this is not in the FITS standard?
+                return -16
+        elif dtype.kind == 'i':
+            #integers
+            if dtype.itemsize == 2:
+                return 16
+            elif dtype.itemsize == 4:
+                return 32
+            elif dtype.itemsize == 8:
+                return 64
+        elif dtype.kind == 'f':
+            #floating point
+            if dtype.itemsize == 4:
+                return -32
+            elif dtype.itemsize == 8:
+                return -64
+
+        raise ValueError, 'unsupported dtype: %s' % dtype
 
 # if xpans is not running, start it up
 def ds9_xpans():
@@ -572,7 +587,16 @@ class DS9(object):
             buf = narr.tostring('C')
             blen = len(narr.data)
             (w, h) = narr.shape
-            paramlist = 'array [xdim=%d,ydim=%d,bitpix=%d]' % (h, w, bp)
+
+            # note that this needs the "endian=" part because sometimes it's
+            # left out completely
+            endianness = ''  # mainly this is for the "=" byteorder->native
+            if narr.dtype.byteorder == '<':
+                endianness = ',endian=little'
+            elif narr.dtype.byteorder == '>':
+                endianness = ',endian=big'
+
+            paramlist = 'array [xdim={0},ydim={1},bitpix={2}{3}]'.format(h, w, bp, endianness)
             return self.set(paramlist, buf, blen+1)
 
     else:
