@@ -3,7 +3,7 @@
 #
 VERSION	      = 1.7
 
-PYDS9	      = /proj/rd/www/ds9/pyds9
+PYDS9	      = /proj/rd/www/pyds9
 FTP	      = /proj/rd/ftp
 TAR	      = pyds9-$(VERSION).tar.gz
 
@@ -46,11 +46,7 @@ bclean:
 	@rm -rf _build/*
 
 clean:
-	@(rm -f *~ foo*; \
-	  for dir in `ls -d xpa-*`; do \
-	    cd $$dir; make clean; cd ..; \
-	  done; \
-	)	
+	@(rm -f *~ foo*; cd xpa && make clean && cd ..;)	
 
 release: clean install sdist html installhtml ftp
 
