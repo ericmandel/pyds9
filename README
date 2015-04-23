@@ -6,11 +6,11 @@ programs such as ds9. The pyds9 module uses a Python interface to XPA to
 communicate with ds9. It supports communication with all of ds9's XPA access
 points. See http://hea-www.harvard.edu/saord/ds9/ref/xpa.html for more info.
 
-To install:
+pyds9 is available from GitHub:
 
-	# unpack the source tar file and change to the source pyds9 directory
-	> gunzip -c pyds9-1.4.tar.gz | tar xf -
-	> cd pyds9-1.4
+	 https://github.com/ericmandel/pyds9
+
+To install:
 
 	# install in default system directory
 	> python setup.py install

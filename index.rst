@@ -52,9 +52,9 @@ including an empty string).
 
 Contact saord@cfa.harvard.edu for help.
 
-**The Ds9 Class:**
+**The DS9 Class:**
 
-.. autoclass:: Ds9
+.. autoclass:: DS9
    :members: __init__, get, set, info, access, get_pyfits, set_pyfits, get_arr2np, set_np2arr
 
 **Auxiliary Routines:**
