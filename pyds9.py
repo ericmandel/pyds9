@@ -168,6 +168,44 @@ will be known to ds9_targets() and the DS9() constructor.
         return 0
 
 
+def string_to_bytes(string):
+    """Python 3: converts the input string into bytes
+    Python 2: returns the string (string and byte strings are identical
+
+    :param string: string to encode
+
+    :rtypes: string (python 2) or byte string (python 3)
+    """
+    if six.PY3 and isinstance(string, str):
+        return string.encode()
+    else:
+        return string
+
+
+def bytes_to_string(byte):
+    """Python 3: converts the input list of bytes into a list of strings
+    Python 2: returns the list of string (string and byte strings are identical
+
+    :param byte: list of byte strings to decode
+
+    :rtypes: list of strings
+    """
+    if six.PY3:
+        try:
+            out = []
+            for b in byte:
+                if isinstance(b, bytes):
+                    out.append(b.decode())
+                else:
+                    out.append(b)
+            return out
+        except TypeError:
+            # non iterable
+            return byte
+    else:
+        return byte
+
+
 def ds9_targets(target='DS9:*'):
     """
     :param target: ds9 target template (default: all ds9 instances)
@@ -182,7 +220,9 @@ def ds9_targets(target='DS9:*'):
 
     You then can pass one of the ids (or names) to the DS9() constructor.
     """
-    return xpa.xpaaccess(target.encode(), None, 1024)
+    targets = xpa.xpaaccess(string_to_bytes(target), None, 1024)
+    # assumes that if one is byte, all are bytes
+    return bytes_to_string(targets)
 
 
 def ds9_openlist(target='DS9:*', n=1024):
@@ -207,12 +247,12 @@ def ds9_openlist(target='DS9:*', n=1024):
         >>> ds9list[1].set("file test.fits")
 
     """
-    tlist = xpa.xpaaccess(target.encode(), None, n)
+    tlist = xpa.xpaaccess(string_to_bytes(target), None, n)
     if not tlist:
         raise ValueError('no active ds9 found for target: %s' % target)
     else:
         ds9list = []
-        for item in tlist:
+        for item in bytes_to_string(tlist):
             ds9list.append(DS9(item.split()[0]))
         return ds9list
 
@@ -302,12 +342,7 @@ class DS9(object):
         failure.  Using verification allows ds9 methods to used in try/except
         constructs, at the expense of a slight decrease in performance.
         """
-        # convert to byte string in python3
-        if six.PY3 and isinstance(target, str):
-            btarget = target.encode()
-        else:
-            btarget = target
-        tlist = xpa.xpaaccess(btarget, None, 1024)
+        tlist = xpa.xpaaccess(string_to_bytes(target), None, 1024)
         if not tlist and start:
             if '?' in target or '*' in target:
                 target = "ds9"
@@ -321,20 +356,15 @@ class DS9(object):
             self.pid = subprocess.Popen([ds9Globals["progs"][1], '-title',
                                          target] + args)
 
-            # convert to byte string in python3
-            if six.PY3 and isinstance(target, str):
-                btarget = target.encode()
-            else:
-                btarget = target
             for i in range(wait):
-                tlist = xpa.xpaaccess(btarget, None, 1024)
+                tlist = xpa.xpaaccess(string_to_bytes(target), None, 1024)
                 if tlist:
                     break
                 time.sleep(1)
+        tlist = bytes_to_string(tlist)
         if not tlist:
             raise ValueError('no active ds9 running for target: %s' % target)
         elif len(tlist) > 1:
-            a = tlist[0].split()
             if 'XPA_METHOD' in os.environ.keys():
                 method = os.environ['XPA_METHOD']
             else:
@@ -346,6 +376,8 @@ class DS9(object):
             print('More than one ds9 is running for target %s:' % target)
             for l in tlist:
                 print("  %s" % l)
+
+            a = tlist[0].split()
             print('Use a specific name or id to construct a DS9 object, e.g.:')
             print("  d = DS9('%s')" % a[0].split()[0].split(':')[1])
             print("  d = DS9('%s')" % a[0])
@@ -372,7 +404,8 @@ class DS9(object):
         """
         An internal test to make sure that ds9 is still running."
         """
-        if self.verify and not xpa.xpaaccess(self.id, None, 1):
+        if self.verify and not xpa.xpaaccess(string_to_bytes(self.id), None,
+                                             1):
             raise ValueError('ds9 is no longer running (%s)' % self.id)
 
     def get(self, paramlist=None):
@@ -397,11 +430,8 @@ class DS9(object):
         """
         self._selftest()
         # convert to byte string in python3
-        if six.PY3 and isinstance(paramlist, str):
-            bparamlist = paramlist.encode()
-        else:
-            bparamlist = paramlist
-        x = xpa.xpaget(self.id, bparamlist, 1)
+        x = xpa.xpaget(string_to_bytes(self.id), string_to_bytes(paramlist), 1)
+        x = bytes_to_string(x)
         if len(x) > 0:
             if paramlist not in self._nostrip:
                 x[0] = x[0].strip()
@@ -453,17 +483,11 @@ class DS9(object):
                 s = buf.tobytes()
             except AttributeError:
                 s = buf.tostring()
-        elif six.PY3 and isinstance(buf, str):
-            s = buf.encode()
         else:
-            s = buf
+            s = string_to_bytes(buf)
 
-        # convert to byte string in python3
-        if six.PY3 and isinstance(paramlist, str):
-            bparamlist = paramlist.encode()
-        else:
-            bparamlist = paramlist
-        return xpa.xpaset(self.id, bparamlist, s, blen, 1)
+        return xpa.xpaset(string_to_bytes(self.id), string_to_bytes(paramlist),
+                          s, blen, 1)
 
     def info(self, paramlist):
         """
@@ -473,12 +497,8 @@ class DS9(object):
         messages to ds9. (NB: ds9 currently does not support info messages.)
         """
         self._selftest()
-        # convert to byte string in python3
-        if six.PY3 and isinstance(paramlist, str):
-            bparamlist = paramlist.encode()
-        else:
-            bparamlist = paramlist
-        return xpa.xpainfo(self.id, bparamlist, 1)
+        return xpa.xpainfo(string_to_bytes(self.id),
+                           string_to_bytes(paramlist), 1)
 
     def access(self):
         """
@@ -488,8 +508,8 @@ class DS9(object):
         by making a direct contact with ds9 itself.
         """
         self._selftest()
-        x = xpa.xpaaccess(self.id, None, 1)
-        return x[0]
+        x = xpa.xpaaccess(string_to_bytes(self.id), None, 1)
+        return bytes_to_string(x)[0]
 
     if ds9Globals["pyfits"]:
         def get_pyfits(self):
@@ -511,10 +531,10 @@ class DS9(object):
             """
             self._selftest()
             imgData = self.get('fits')
-            if isinstance(imgData, str):
+            if six.PY2:
                 imgString = StringIO(imgData)
             else:
-                imgString = BytesIO(imgData)
+                imgString = BytesIO(string_to_bytes(imgData))
             return pyfits.open(imgString)
 
         def set_pyfits(self, hdul):
@@ -583,11 +603,11 @@ class DS9(object):
 
             """
             self._selftest()
-            w = int(self.get(b'fits width'))
-            h = int(self.get(b'fits height'))
-            d = int(self.get(b'fits depth'))
-            bp = int(self.get(b'fits bitpix'))
-            s = self.get(b'array')
+            w = int(self.get('fits width'))
+            h = int(self.get('fits height'))
+            d = int(self.get('fits depth'))
+            bp = int(self.get('fits bitpix'))
+            s = self.get('array')
             if d > 1:
                 arr = numpy.fromstring(s, dtype=_bp2np(bp)).reshape((d, h, w))
             else:
@@ -658,7 +678,6 @@ class DS9(object):
                 endianness = ',endian=big'
 
             paramlist = 'array [xdim={0},ydim={1},bitpix={2}{3}]'.format(h, w, bp, endianness)
-            # import pdb; pdb.set_trace()
             return self.set(paramlist, buf, blen+1)
 
     else:
