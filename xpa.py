@@ -36,8 +36,8 @@ if _libpath:
     else:
         libc=ctypes.cdll.LoadLibrary(None)
 else:
-    raise ImportError, "can't find XPA shared library"
-	
+    raise ImportError("can't find XPA shared library")
+
 # factory routine returning pointer to byte array
 c_byte_p = ctypes.POINTER(ctypes.c_byte)
 
@@ -107,8 +107,7 @@ def XPAAccess(xpa, target, paramlist, mode, names, messages, n):
                                  ctypes.c_char_p, ctypes.c_char_p,  \
                                  c_byte_p*n, c_byte_p*n, 	    \
                                  ctypes.c_int]
-    return libxpa.XPAAccess(xpa, target, paramlist, mode,	    \
-                            names, messages, n)
+    return libxpa.XPAAccess(xpa, target, paramlist, mode, names, messages, n)
 
 # default value for n (max number of access points)
 xpa_n = 1024
@@ -123,37 +122,46 @@ def xpaget(target, plist=None, n=xpa_n):
     errmsg = ''
     got = XPAGet(None, target, plist, None, bufs, lens, names, errs, n)
     if got:
-	buf = []
-     	for i in range(got):
+        buf = []
+        for i in range(got):
             if lens[i]:
                 cur=ctypes.string_at(bufs[i], lens[i])
                 buf.append(cur)
-	for i in range(got):
-	    if errs[i]: errmsg += ctypes.string_at(errs[i]).strip() + '\n'
+        for i in range(got):
+            if errs[i]: errmsg += ctypes.string_at(errs[i]).strip() + '\n'
     else:
         buf = None
     _freebufs(bufs, n)
     _freebufs(names, n)
     _freebufs(errs, n)
-    if errmsg: raise ValueError, errmsg
+    if errmsg:
+        raise ValueError(errmsg)
     return buf
+
 
 def xpaset(target, plist=None, buf=None, blen=-1, n=xpa_n):
     if blen < 0:
-	if buf != None:
-		blen = len(buf)
-	else:
-		blen = 0
+        if buf is not None:
+            blen = len(buf)
+        else:
+            blen = 0
     buf_t = c_byte_p*n
     names = buf_t()
     errs = buf_t()
     errmsg = ''
     got = XPASet(None, target, plist, None, buf, blen, names, errs, n)
     for i in range(got):
-        if errs[i]: errmsg += ctypes.string_at(errs[i]).strip() + '\n'
+        if errs[i]:
+            as_string = ctypes.string_at(errs[i]).strip()
+            try:
+                as_string = as_string.decode()
+            except AttributeError:  # it's already a string
+                pass
+            errmsg += as_string + '\n'
     _freebufs(names, n)
     _freebufs(errs, n)
-    if errmsg: raise ValueError, errmsg
+    if errmsg:
+        raise ValueError(errmsg)
     return got
 
 def xpainfo(target, plist=None, n=xpa_n):
@@ -163,10 +171,12 @@ def xpainfo(target, plist=None, n=xpa_n):
     errmsg = ''
     got = XPAInfo(None, target, plist, None, names, errs, n)
     for i in range(got):
-        if errs[i]: errmsg += ctypes.string_at(errs[i]).strip() + '\n'
+        if errs[i]:
+            errmsg += ctypes.string_at(errs[i]).strip() + '\n'
     _freebufs(names, n)
     _freebufs(errs, n)
-    if errmsg: raise ValueError, errmsg
+    if errmsg:
+        raise ValueError(errmsg)
     return got
 
 def xpaaccess(target, plist=None, n=xpa_n):
@@ -181,12 +191,13 @@ def xpaaccess(target, plist=None, n=xpa_n):
             if names[i]:
                 cur = ctypes.string_at(names[i]).strip()
                 buf.append(cur)
-	for i in range(got):
-            if errs[i]: errmsg += ctypes.string_at(errs[i]).strip() + '\n'
+        for i in range(got):
+            if errs[i]:
+                errmsg += ctypes.string_at(errs[i]).strip() + '\n'
     else:
         buf = None
     _freebufs(names, n)
     _freebufs(errs, n)
-    if errmsg: raise ValueError, errmsg
+    if errmsg:
+        raise ValueError(errmsg)
     return buf
-
