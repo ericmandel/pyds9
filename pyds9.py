@@ -739,8 +739,8 @@ class ds9(DS9):
 if "PYDS9_NOXPANS" not in os.environ.keys():
     ds9_xpans()
 
-if __name__ == '__main__':
 
+def test():
     print("starting quick test for pyds9 version " + __version__)
 
     # start ds9 if necessary
@@ -837,3 +837,7 @@ if __name__ == '__main__':
 
     else:
         print("could not find " + casa + " ... skipping casa tests")
+
+
+if __name__ == '__main__':
+    test()
