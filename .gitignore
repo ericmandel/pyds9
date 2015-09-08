@@ -13,4 +13,4 @@ dist/
 xpa/config.status
 xpa/Makefile
 xpa/conf.h
-
+*egg*
