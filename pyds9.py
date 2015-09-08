@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import contextlib
 import sys
 import subprocess
 import shlex
@@ -7,10 +8,11 @@ import os
 import time
 import array
 import platform
+import textwrap as tw
+
 import xpa
 
 import six
-from six import StringIO
 from six import BytesIO
 
 """
@@ -110,6 +112,62 @@ if ds9Globals["numpy"]:
         raise ValueError('unsupported dtype: %s' % dtype)
 
 
+def string_to_bytes(string):
+    """Converts the input (list of) string(s) into (a list of) bytes
+
+    :param string: string or list of strings to encode
+
+    :rtypes: (list of) byte string(s)
+    """
+    if six.PY3:
+        if isinstance(string, str):
+            return string.encode()
+        elif isinstance(string, bytes):
+            return string
+        else:
+            try:
+                out = []
+                for s in string:
+                    if isinstance(s, str):
+                        out.append(s.decode())
+                    else:
+                        out.append(s)
+                return out
+            except TypeError:
+                # non iterable
+                return string
+    else:
+        return string
+
+
+def bytes_to_string(byte):
+    """Converts the input (list of) byte string(s) into (a list of) string(s)
+
+    :param byte: (list of) byte string(s) to decode
+
+    :rtypes: string or list of strings
+    """
+    if six.PY3:
+        if isinstance(byte, bytes):
+            return byte.decode()
+        elif isinstance(byte, str):
+            return byte
+        else:
+            try:
+                out = []
+                for b in byte:
+                    if isinstance(b, bytes):
+                        out.append(b.decode())
+                    else:
+                        out.append(b)
+                return out
+            except TypeError:
+                # non iterable
+                return byte
+    else:
+        return byte
+
+
 # if xpans is not running, start it up
 def ds9_xpans():
     """
@@ -120,7 +178,7 @@ def ds9_xpans():
     was already running, an explanation on how to connect to that instance
     of ds9 is displayed.
     """
-    if xpa.xpaaccess(b"xpans", None, 1) == None:
+    if xpa.xpaaccess(b"xpans", None, 1) is None:
         _cmd = False
         # look in install directories for xpans
         for _dir in sys.path:
@@ -141,69 +199,35 @@ def ds9_xpans():
                                  universal_newlines=True)
             pslist = p.communicate()[0]   # get the std out
             if 'ds9' in pslist:
-                print("""
-An instance of ds9 was found to be running before we could start the 'xpans'
-name server. You will need to perform a bit of manual intervention in order
-to connect this existing ds9 to Python.
+                print(tw.dedent("""
+                    An instance of ds9 was found to be running before we could
+                    start the 'xpans' name server. You will need to perform a
+                    bit of manual intervention in order to connect this
+                    existing ds9 to Python.
 
-For ds9 version 5.7 and beyond, simply register the existing ds9 with the xpans
-name server by selecting the ds9 File->XPA->Connect menu option. Your ds9 will
-now be fully accessible to pyds9 (e.g., it appear in the list returned by the
-ds9_targets() routine).
+                    For ds9 version 5.7 and beyond, simply register the
+                    existing ds9 with the xpans name server by selecting the
+                    ds9 File->XPA->Connect menu option. Your ds9 will now be
+                    fully accessible to pyds9 (e.g., it appear in the list
+                    returned by the ds9_targets() routine).
 
-For ds9 versions prior to 5.7, you cannot (easily) register with xpans,
-but you can view ds9's File->XPA Information menu option and pass the value
-associated with XPA_METHOD directly to the Python DS9() constructor, e.g.:
+                    For ds9 versions prior to 5.7, you cannot (easily) register
+                    with xpans, but you can view ds9's File->XPA Information
+                    menu option and pass the value associated with XPA_METHOD
+                    directly to the Python DS9() constructor, e.g.:
 
-    d = DS9('a000101:12345')
+                        d = DS9('a000101:12345')
 
-The good news is that new instances of ds9 will be registered with xpans, and
-will be known to ds9_targets() and the DS9() constructor.
-""")
+                    The good news is that new instances of ds9 will be
+                    registered with xpans, and will be known to ds9_targets()
+                    and the DS9() constructor.
+                    """))
             return 1
         else:
             raise ValueError("xpans is not running and cannot be located. You"
                              " will not be able to communicate with ds9")
     else:
         return 0
-
-
-def string_to_bytes(string):
-    """Python 3: converts the input string into bytes
-    Python 2: returns the string (string and byte strings are identical
-
-    :param string: string to encode
-
-    :rtypes: string (python 2) or byte string (python 3)
-    """
-    if six.PY3 and isinstance(string, str):
-        return string.encode()
-    else:
-        return string
-
-
-def bytes_to_string(byte):
-    """Python 3: converts the input list of bytes into a list of strings
-    Python 2: returns the list of string (string and byte strings are identical
-
-    :param byte: list of byte strings to decode
-
-    :rtypes: list of strings
-    """
-    if six.PY3:
-        try:
-            out = []
-            for b in byte:
-                if isinstance(b, bytes):
-                    out.append(b.decode())
-                else:
-                    out.append(b)
-            return out
-        except TypeError:
-            # non iterable
-            return byte
-    else:
-        return byte
 
 
 def ds9_targets(target='DS9:*'):
@@ -221,7 +245,6 @@ def ds9_targets(target='DS9:*'):
     You then can pass one of the ids (or names) to the DS9() constructor.
     """
     targets = xpa.xpaaccess(string_to_bytes(target), None, 1024)
-    # assumes that if one is byte, all are bytes
     return bytes_to_string(targets)
 
 
@@ -343,6 +366,7 @@ class DS9(object):
         constructs, at the expense of a slight decrease in performance.
         """
         tlist = xpa.xpaaccess(string_to_bytes(target), None, 1024)
+        # no need to convert, as tlist content is not used
         if not tlist and start:
             if '?' in target or '*' in target:
                 target = "ds9"
@@ -408,9 +432,11 @@ class DS9(object):
                                              1):
             raise ValueError('ds9 is no longer running (%s)' % self.id)
 
-    def get(self, paramlist=None):
+    def get(self, paramlist=None, decode=True):
         """
         :param paramlist: command parameters (documented in the ds9 ref manual)
+        :param decode: decode the output; must be set to ``False`` in python 3
+        when getting ``fits`` or ``array``
 
         :rtype: returned data or info (as a string)
 
@@ -425,13 +451,15 @@ class DS9(object):
           '15'
           >>> d.get("fits bitpix")
           '32'
+          >>> d.get("fits", decode=False)
 
         Note that all access points return data as python strings.
         """
         self._selftest()
         # convert to byte string in python3
         x = xpa.xpaget(string_to_bytes(self.id), string_to_bytes(paramlist), 1)
-        x = bytes_to_string(x)
+        if decode:
+            x = bytes_to_string(x)
         if len(x) > 0:
             if paramlist not in self._nostrip:
                 x[0] = x[0].strip()
@@ -509,7 +537,7 @@ class DS9(object):
         """
         self._selftest()
         x = xpa.xpaaccess(string_to_bytes(self.id), None, 1)
-        return bytes_to_string(x)[0]
+        return bytes_to_string(x[0])
 
     if ds9Globals["pyfits"]:
         def get_pyfits(self):
@@ -530,11 +558,8 @@ class DS9(object):
 
             """
             self._selftest()
-            imgData = self.get('fits')
-            if six.PY2:
-                imgString = StringIO(imgData)
-            else:
-                imgString = BytesIO(string_to_bytes(imgData))
+            imgData = self.get('fits', decode=False)
+            imgString = BytesIO(string_to_bytes(imgData))
             return pyfits.open(imgString)
 
         def set_pyfits(self, hdul):
@@ -562,12 +587,11 @@ class DS9(object):
                 else:
                     raise ValueError('requires astropy.HDUList as input')
             # for python2 BytesIO and StringIO are the same
-            newFitsFile = BytesIO()
-            hdul.writeto(newFitsFile)
-            newfits = newFitsFile.getvalue()
-            got = self.set('fits', newfits, len(newfits))
-            newFitsFile.close()
-            return got
+            with contextlib.closing(BytesIO()) as newFitsFile:
+                hdul.writeto(newFitsFile)
+                newfits = newFitsFile.getvalue()
+                got = self.set('fits', newfits, len(newfits))
+                return got
 
     else:
         def get_pyfits(self):
@@ -607,7 +631,7 @@ class DS9(object):
             h = int(self.get('fits height'))
             d = int(self.get('fits depth'))
             bp = int(self.get('fits bitpix'))
-            s = self.get('array')
+            s = self.get('array', decode=False)
             if d > 1:
                 arr = numpy.fromstring(s, dtype=_bp2np(bp)).reshape((d, h, w))
             else:
@@ -677,8 +701,9 @@ class DS9(object):
             elif narr.dtype.byteorder == '>':
                 endianness = ',endian=big'
 
-            paramlist = 'array [xdim={0},ydim={1},bitpix={2}{3}]'.format(h, w, bp, endianness)
-            return self.set(paramlist, buf, blen+1)
+            paramlist = 'array [xdim={0},ydim={1},bitpix={2}{3}]'
+            return self.set(paramlist.format(h, w, bp, endianness), buf,
+                            blen+1)
 
     else:
         def get_arr2np(self):
