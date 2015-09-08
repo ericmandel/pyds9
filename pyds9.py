@@ -767,7 +767,7 @@ def test():
 
     print("connected to ds9 with id %s" % d.id)
 
-    tfits = os.getcwd() + "/test.fits"
+    tfits = os.path.join(os.getcwd(), "test.fits")
     if os.path.exists(tfits):
         cmd = "file " + tfits
         d.set(cmd)
@@ -811,7 +811,7 @@ def test():
     print("stopping ds9 ...")
     d.set("exit")
 
-    casa = os.getcwd() + "/casa.fits"
+    casa = os.path.join(os.getcwd(), "casa.fits")
     if os.path.exists(casa):
         print("starting ds9 (no args) ...")
         d2 = DS9('pytest2')
