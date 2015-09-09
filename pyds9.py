@@ -39,6 +39,17 @@ if ds9Globals["ulist"][0] == 'Windows':
 else:
     ds9Globals["progs"] = ['xpans', 'ds9']
 
+# default list of commands that returns binary data that should not be decoded
+ds9Globals['bin_cmd'] = ["array",
+                         "fits", "fits image", "fits table", "fits slice",
+                         "gif", "jpeg",
+                         "mecube",
+                         "mosaic", "mosaicimage",
+                         "nrrd",
+                         "png",
+                         "rgbarray", "rgbcube", "rgbimage",
+                         "tiff"]
+
 # load pyfits, if available
 try:
     from astropy.io import fits as pyfits
@@ -432,13 +443,13 @@ class DS9(object):
                                              1):
             raise ValueError('ds9 is no longer running (%s)' % self.id)
 
-    def get(self, paramlist=None, decode=True):
+    def get(self, paramlist=None, decode=None):
         """
         :param paramlist: command parameters (documented in the ds9 ref manual)
-        :param decode: decode the output; must be set to ``False`` in python 3
-        when getting ``fits`` or ``array``
+        :param decode: decode the output; if ``None`` decodes the output if
+            ``paramlist`` is not present in the list ``ds9Globals['bin_cmd']``
 
-        :rtype: returned data or info (as a string)
+        :rtype: returned data or info (as a string or byte string)
 
         Once a DS9 object has been initialized, use 'get' to retrieve data from
         ds9 by specifying the standard xpa paramlist::
@@ -451,13 +462,14 @@ class DS9(object):
           '15'
           >>> d.get("fits bitpix")
           '32'
-          >>> d.get("fits", decode=False)
 
         Note that all access points return data as python strings.
         """
         self._selftest()
         # convert to byte string in python3
         x = xpa.xpaget(string_to_bytes(self.id), string_to_bytes(paramlist), 1)
+        if decode is None:
+            decode = paramlist not in ds9Globals['bin_cmd']
         if decode:
             x = bytes_to_string(x)
         if len(x) > 0:
@@ -558,7 +570,7 @@ class DS9(object):
 
             """
             self._selftest()
-            imgData = self.get('fits', decode=False)
+            imgData = self.get('fits')
             imgString = BytesIO(string_to_bytes(imgData))
             return pyfits.open(imgString)
 
@@ -631,7 +643,7 @@ class DS9(object):
             h = int(self.get('fits height'))
             d = int(self.get('fits depth'))
             bp = int(self.get('fits bitpix'))
-            s = self.get('array', decode=False)
+            s = self.get('array')
             if d > 1:
                 arr = numpy.fromstring(s, dtype=_bp2np(bp)).reshape((d, h, w))
             else:
