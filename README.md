@@ -16,7 +16,7 @@ The easiest way to install ``pyds9`` is:
     # install from the repository
     > pip install [--user] git+https://github.com/ericmandel/pyds9.git#egg=pyds9
 
-Alternatively you can clone the git repository or download and unpack the [zip
+Alternatively, you can clone the git repository or download and unpack the [zip
 file](https://github.com/ericmandel/pyds9/archive/master.zip). Then ``cd`` into
 the pyds9 directory and issue:
 
@@ -54,7 +54,7 @@ For Linux, the X Window System libraries and header files must be available.
 On some versions of Linux (e.g., debian), the development libraries must be
 installed explicitly. If you have problems, please let us know.
 
-To report bugs, ask for feature and support, please contact us at
+To report a bug, ask for a new feature, or request support, please contact us at
 https://github.com/ericmandel/pyds9/issues
 
 
