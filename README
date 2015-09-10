@@ -20,6 +20,18 @@ or
 	> python setup.py install --prefix=<install-dir>
 	> setenv PYTHONPATH <install-dir>lib/python2.x/site-packages 
 
+or
+
+    # install from the repository
+    pip install git+https://github.com/ericmandel/pyds9.git
+
+If the compilation of the C files in ``xpa`` directory fails saying that doesn't
+find the header file ``X11/Intrinsic.h`` make sure to install the relevant
+packages:
+
+* openSUSE: sudo zypper install libXt-devel
+* Ubuntu: sudo apt-get install libxt-dev
+
 To run:
 
 	# start up python

@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 from distutils.core import setup
 from distutils.command import build_py, install_data, clean
-from os import system, path
 import os
 import platform
 import struct
 
 # which shared library?
-ulist=platform.uname()
+ulist = platform.uname()
 if ulist[0] == 'Darwin':
     xpalib = 'libxpa.dylib'
     xpans = 'xpans'
@@ -19,18 +18,20 @@ else:
     xpans = 'xpans'
 
 # make command for xpa
-xpadir='xpa'
+xpadir = 'xpa'
+
+
 def make(which):
-    curdir=os.getcwd()
-    srcDir=os.path.join(os.path.dirname(os.path.abspath(__file__)),xpadir)
+    curdir = os.getcwd()
+    srcDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), xpadir)
     os.chdir(srcDir)
     if which == 'all':
         os.system('echo "building XPA shared library ..."')
-        cflags=''
-        if not 'CFLAGS' in os.environ and struct.calcsize("P") == 4:
+        cflags = ''
+        if 'CFLAGS' not in os.environ and struct.calcsize("P") == 4:
             if ulist[0] == 'Darwin' or ulist[4] == 'x86_64':
                 os.system('echo "adding -m32 to compiler flags ..."')
-                cflags=' CFLAGS="-m32"'
+                cflags = ' CFLAGS="-m32"'
         os.system('./configure --enable-shared --without-tcl'+cflags)
         os.system('make clean; make; rm -f *.o')
     elif which == 'clean':
@@ -45,14 +46,17 @@ def make(which):
         os.system('rm -f *.o')
     os.chdir(curdir)
 
+
 # rework build_py to make the xpa shared library as well
 class my_build_py(build_py.build_py):
     def run(self):
-        if ((platform.uname()[0] == 'Windows') or ((platform.uname()[0]).find('CYGWIN') != -1)):
+        if ((platform.uname()[0] == 'Windows') or
+                ((platform.uname()[0]).find('CYGWIN') != -1)):
             make('mingw-dll')
         else:
             make('all')
         build_py.build_py.run(self)
+
 
 # thanks to setup.py in ctypes
 class my_install_data(install_data.install_data):
@@ -63,8 +67,9 @@ class my_install_data(install_data.install_data):
         if self.install_dir is None:
             installobj = self.distribution.get_command_obj('install')
             self.install_dir = installobj.install_lib
-        print 'Installing data files to %s' % self.install_dir
+        print('Installing data files to %s' % self.install_dir)
         install_data.install_data.finalize_options(self)
+
 
 # clean up xpa as well
 class my_clean(clean.clean):
@@ -72,16 +77,19 @@ class my_clean(clean.clean):
         make('clean')
         clean.clean.run(self)
 
+
 # setup command
 setup(name='pyds9',
-    version='1.7',
-    description='Python/DS9 connection via XPA (with numpy and pyfits support)',
-    author='Bill Joye and Eric Mandel',
-    author_email='saord@cfa.harvard.edu',
-    url='http://hea-www.harvard.edu/saord/ds9/',
-    py_modules=['pyds9', 'xpa', 'ds9'],
-    data_files=[('', [xpadir+'/'+xpalib, xpadir+'/'+xpans])],
-    cmdclass = {'build_py': my_build_py, 	 \
-                'install_data': my_install_data, \
-                'clean': my_clean },
-   )
+      version='1.7',
+      description='Python/DS9 connection via XPA (with numpy and pyfits support)',
+      author='Bill Joye and Eric Mandel',
+      author_email='saord@cfa.harvard.edu',
+      url='http://hea-www.harvard.edu/saord/ds9/',
+      py_modules=['pyds9', 'xpa', 'ds9'],
+      data_files=[('', [os.path.join(xpadir, xpalib),
+                        os.path.join(xpadir, xpans)])],
+      cmdclass={'build_py': my_build_py,
+                'install_data': my_install_data,
+                'clean': my_clean},
+      install_requires=['six']
+      )
