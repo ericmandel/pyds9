@@ -1,29 +1,27 @@
-		Python connection to ds9 via XPA
+# Python connection to ds9 via XPA
 
-The XPA messaging system (http://hea-www.harvard.edu/saord/xpa) provides 
+The [XPA messaging system](http://hea-www.harvard.edu/saord/xpa) provides 
 seamless communication between many kinds of Unix programs, including Tcl/Tk
-programs such as ds9. The pyds9 module uses a Python interface to XPA to 
+programs such as ds9. The ``pyds9`` module uses a Python interface to XPA to 
 communicate with ds9. It supports communication with all of ds9's XPA access
 points. See http://hea-www.harvard.edu/saord/ds9/ref/xpa.html for more info.
 
-pyds9 is available from GitHub:
+pyds9 is available from GitHub at:
 
-	 https://github.com/ericmandel/pyds9
+https://github.com/ericmandel/pyds9
 
-To install:
 
-	# install in default system directory
-	> python setup.py install
-
-or
-	# install in specified directory
-	> python setup.py install --prefix=<install-dir>
-	> setenv PYTHONPATH <install-dir>lib/python2.x/site-packages 
-
-or
+The easiest way to install ``pyds9`` is:
 
     # install from the repository
-    pip install git+https://github.com/ericmandel/pyds9.git
+    > pip install [--user] git+https://github.com/ericmandel/pyds9.git#egg=pyds9
+
+Alternatively you can clone the git repository or download and unpack the [zip
+file](https://github.com/ericmandel/pyds9/archive/master.zip). Then ``cd`` into
+the pyds9 directory and issue:
+
+    > python setup.py [--user] install
+
 
 If the compilation of the C files in ``xpa`` directory fails saying that doesn't
 find the header file ``X11/Intrinsic.h`` make sure to install the relevant
@@ -34,12 +32,12 @@ packages:
 
 To run:
 
-	# start up python
-	> python
+    # start up python
+    > python
         ... (startup messages) ...
-	>>> from pyds9 import *
-	>>> print ds9_targets()
-	>>> d = DS9()
+    >>> from pyds9 import *
+    >>> print ds9_targets()
+    >>> d = DS9()
 
 etc.
 
@@ -56,6 +54,8 @@ For Linux, the X Window System libraries and header files must be available.
 On some versions of Linux (e.g., debian), the development libraries must be
 installed explicitly. If you have problems, please let us know.
 
-Contact saord@cfa.harvard.edu for help.
+To report bugs, ask for feature and support, please contact us at
+https://github.com/ericmandel/pyds9/issues
 
-Eric Mandel
+
+Eric Mandel and Francesco Montesano
