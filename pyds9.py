@@ -200,7 +200,8 @@ def ds9_xpans():
                 break
         # look in development directory
         if not _cmd:
-            _fname = './xpa/' + ds9Globals["progs"][0]
+            _fname = os.path.join(os.path.dirname(__file__), 'xpa',
+                                  ds9Globals["progs"][0])
             if os.path.exists(_fname):
                 _cmd = True
         if _cmd:
