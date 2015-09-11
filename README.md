@@ -35,11 +35,16 @@ To run:
     # start up python
     > python
         ... (startup messages) ...
-    >>> from pyds9 import *
-    >>> print ds9_targets()
-    >>> d = DS9()
+    >>> import pyds9
+    >>> print(pyds9.ds9_targets())
+    >>> d = pyds9.DS9()  # will open a new ds9 window or connect to an existing one
+    >>> d.set("file /path/to/fits")  # send the file to the open ds9 session
 
-etc.
+If you create a ``test.fits`` file and a ``casa.fits`` file in the working
+directory you can test basic ds9 functionalities running the function:
+
+    > pyds9.test()
+
 
 The setup.py install will build and install both the XPA shared library and 
 the xpans name server. By default, the code generated for the shared object
