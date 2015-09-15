@@ -80,7 +80,7 @@ class my_clean(clean.clean):
 
 # setup command
 setup(name='pyds9',
-      version='1.7',
+      version='1.8',
       description='Python/DS9 connection via XPA (with numpy and pyfits support)',
       author='Bill Joye and Eric Mandel',
       author_email='saord@cfa.harvard.edu',
