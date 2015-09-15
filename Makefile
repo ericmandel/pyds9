@@ -1,7 +1,7 @@
 # Makefile for Sphinx documentation
 # with additions for building pyds9
 #
-VERSION	      = 1.7
+VERSION	      = 1.8
 
 PYDS9	      = /proj/rd/www/pyds9
 FTP	      = /proj/rd/ftp
