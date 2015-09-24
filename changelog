@@ -1,5 +1,8 @@
 Changelog for pyds9
 
+version github	September 24, 2015
+		remove ds9.py
+
 version github	September 15, 2015
 		bump version 1.8
 
