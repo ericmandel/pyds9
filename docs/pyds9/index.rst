@@ -52,12 +52,14 @@ including an empty string).
 
 Contact saord@cfa.harvard.edu for help.
 
-**The DS9 Class:**
+The DS9 Class
+-------------
 
 .. autoclass:: DS9
    :members: __init__, get, set, info, access, get_pyfits, set_pyfits, get_arr2np, set_np2arr
 
-**Auxiliary Routines:**
+Auxiliary Routines
+------------------
 
 .. autofunction:: ds9_targets
 
@@ -68,6 +70,12 @@ Contact saord@cfa.harvard.edu for help.
 
 .. toctree::
    :maxdepth: 2
+
+Reference/API
+-------------
+.. from astropy template
+
+.. automodapi:: packagename
 
 Indices and tables
 ==================
