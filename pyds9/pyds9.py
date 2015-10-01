@@ -1,3 +1,13 @@
+"""
+ds9.py connects python and ds9 via the xpa messaging system:
+
+- The ds9 class constructor connects to a single instance of a running ds9.
+- The ds9 object supports 'set' and 'get' methods to communicate with ds9.
+- Send/retrieve numpy arrays and pyfits (or astropy) hdulists to/from ds9.
+- The ds9_targets() function lists ds9 programs running on your system.
+- The ds9_openlist() function connects to a list of running ds9 instances.
+
+"""
 from __future__ import (print_function, absolute_import, division,
                         unicode_literals)
 
@@ -16,19 +26,11 @@ import xpa
 import six
 from six import BytesIO
 
-"""
-ds9.py connects python and ds9 via the xpa messaging system:
-
-- The ds9 class constructor connects to a single instance of a running ds9.
-- The ds9 object supports 'set' and 'get' methods to communicate with ds9.
-- Send/retrieve numpy arrays and pyfits (or astropy) hdulists to/from ds9.
-- The ds9_targets() function lists ds9 programs running on your system.
-- The ds9_openlist() function connects to a list of running ds9 instances.
-
-"""
 
 # pyds9 version
 __version__ = '1.8'
+
+__all__ = ['DS9', 'ds9', 'ds9_openlist', 'ds9_targets', 'ds9_xpans']
 
 # try to be a little bit neat with global parameters
 ds9Globals = {}
