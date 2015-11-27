@@ -1,95 +1,120 @@
 #!/usr/bin/env python
-from distutils.core import setup
-from distutils.command import build_py, install_data, clean
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+import glob
 import os
-import platform
-import struct
+import sys
 
-# which shared library?
-ulist = platform.uname()
-if ulist[0] == 'Darwin':
-    xpalib = 'libxpa.dylib'
-    xpans = 'xpans'
-elif ((ulist[0] == 'Windows') or (ulist[0].find('CYGWIN') != -1)):
-    xpalib = 'libxpa.dll'
-    xpans = 'xpans.exe'
+import ah_bootstrap
+from setuptools import setup
+
+# A dirty hack to get around some early import/configurations ambiguities
+if sys.version_info[0] >= 3:
+    import builtins
 else:
-    xpalib = 'libxpa.so'
-    xpans = 'xpans'
+    import __builtin__ as builtins
+builtins._ASTROPY_SETUP_ = True
 
-# make command for xpa
-xpadir = 'xpa'
+from astropy_helpers.setup_helpers import (
+    register_commands, adjust_compiler, get_debug_option, get_package_info)
+from astropy_helpers.git_helpers import get_git_devstr
+from astropy_helpers.version_helpers import generate_version_py
 
+# Get some values from the setup.cfg
+from distutils import config
+conf = config.ConfigParser()
+conf.read(['setup.cfg'])
+metadata = dict(conf.items('metadata'))
 
-def make(which):
-    curdir = os.getcwd()
-    srcDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), xpadir)
-    os.chdir(srcDir)
-    if which == 'all':
-        os.system('echo "building XPA shared library ..."')
-        cflags = ''
-        if 'CFLAGS' not in os.environ and struct.calcsize("P") == 4:
-            if ulist[0] == 'Darwin' or ulist[4] == 'x86_64':
-                os.system('echo "adding -m32 to compiler flags ..."')
-                cflags = ' CFLAGS="-m32"'
-        os.system('./configure --enable-shared --without-tcl'+cflags)
-        os.system('make clean; make; rm -f *.o')
-    elif which == 'clean':
-        os.system('echo "cleaning XPA ..."')
-        os.system('make clean')
-    elif which == 'mingw-dll':
-        os.system('echo "building XPA shared library ..."')
-        os.system('sh configure --without-tcl')
-        os.system('make clean')
-        os.system('make')
-        os.system('make mingw-dll')
-        os.system('rm -f *.o')
-    os.chdir(curdir)
+PACKAGENAME = metadata.get('package_name', 'pyds9')
+DESCRIPTION = metadata.get('description', 'Python connection to ds9 via XPA')
+AUTHOR = metadata.get('author', '')
+AUTHOR_EMAIL = metadata.get('author_email', '')
+LICENSE = metadata.get('license', 'unknown')
+URL = metadata.get('url', '')
 
+# Get the long description from the package's docstring
+__import__(PACKAGENAME)
+package = sys.modules[PACKAGENAME]
+LONG_DESCRIPTION = package.__doc__
 
-# rework build_py to make the xpa shared library as well
-class my_build_py(build_py.build_py):
-    def run(self):
-        if ((platform.uname()[0] == 'Windows') or
-                ((platform.uname()[0]).find('CYGWIN') != -1)):
-            make('mingw-dll')
-        else:
-            make('all')
-        build_py.build_py.run(self)
+# Store the package name in a built-in variable so it's easy
+# to get from other parts of the setup infrastructure
+builtins._ASTROPY_PACKAGE_NAME_ = PACKAGENAME
 
+# VERSION should be PEP386 compatible (http://www.python.org/dev/peps/pep-0386)
+VERSION = '1.9.dev'
 
-# thanks to setup.py in ctypes
-class my_install_data(install_data.install_data):
-    """A custom install_data command, which will install it's files
-    into the standard directories (normally lib/site-packages).
-    """
-    def finalize_options(self):
-        if self.install_dir is None:
-            installobj = self.distribution.get_command_obj('install')
-            self.install_dir = installobj.install_lib
-        print('Installing data files to %s' % self.install_dir)
-        install_data.install_data.finalize_options(self)
+# Indicates if this version is a release version
+RELEASE = 'dev' not in VERSION
 
+if not RELEASE:
+    VERSION += get_git_devstr(False)
 
-# clean up xpa as well
-class my_clean(clean.clean):
-    def run(self):
-        make('clean')
-        clean.clean.run(self)
+# Populate the dict of setup command overrides; this should be done before
+# invoking any other functionality from distutils since it can potentially
+# modify distutils' behavior.
+cmdclassd = register_commands(PACKAGENAME, VERSION, RELEASE)
+
+# Adjust the compiler in case the default on this platform is to use a
+# broken one.
+adjust_compiler(PACKAGENAME)
+
+# Freeze build information in version.py
+generate_version_py(PACKAGENAME, VERSION, RELEASE,
+                    get_debug_option(PACKAGENAME))
+
+# Treat everything in scripts except README.rst as a script to be installed
+scripts = [fname for fname in glob.glob(os.path.join('scripts', '*'))
+           if os.path.basename(fname) != 'README.rst']
 
 
-# setup command
-setup(name='pyds9',
-      version='1.8',
-      description='Python/DS9 connection via XPA (with numpy and pyfits support)',
-      author='Bill Joye and Eric Mandel',
-      author_email='saord@cfa.harvard.edu',
-      url='http://hea-www.harvard.edu/saord/ds9/',
-      py_modules=['pyds9', 'xpa'],
-      data_files=[('', [os.path.join(xpadir, xpalib),
-                        os.path.join(xpadir, xpans)])],
-      cmdclass={'build_py': my_build_py,
-                'install_data': my_install_data,
-                'clean': my_clean},
-      install_requires=['six']
+# Get configuration information from all of the various subpackages.
+# See the docstring for setup_helpers.update_package_files for more
+# details.
+package_info = get_package_info()
+
+# Add the project-global data
+package_info['package_data'].setdefault(PACKAGENAME, [])
+package_info['package_data'][PACKAGENAME].append('data/*')
+
+# Define entry points for command-line scripts
+entry_points = {'console_scripts': []}
+
+entry_point_list = conf.items('entry_points')
+for entry_point in entry_point_list:
+    entry_points['console_scripts'].append('{0} = {1}'.format(entry_point[0],
+                                                              entry_point[1]))
+
+# Include all .c files, recursively, including those generated by
+# Cython, since we can not do this in MANIFEST.in with a "dynamic"
+# directory name.
+c_files = []
+for root, dirs, files in os.walk(PACKAGENAME):
+    for filename in files:
+        if filename.endswith('.c'):
+            c_files.append(
+                os.path.join(
+                    os.path.relpath(root, PACKAGENAME), filename))
+package_info['package_data'][PACKAGENAME].extend(c_files)
+
+# Note that requires and provides should not be included in the call to
+# ``setup``, since these are now deprecated. See this link for more details:
+# https://groups.google.com/forum/#!topic/astropy-dev/urYO8ckB2uM
+
+setup(name=PACKAGENAME,
+      version=VERSION,
+      description=DESCRIPTION,
+      scripts=scripts,
+      install_requires=['astropy'],
+      author=AUTHOR,
+      author_email=AUTHOR_EMAIL,
+      license=LICENSE,
+      url=URL,
+      long_description=LONG_DESCRIPTION,
+      cmdclass=cmdclassd,
+      zip_safe=False,
+      use_2to3=False,
+      entry_points=entry_points,
+      **package_info
       )
