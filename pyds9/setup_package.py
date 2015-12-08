@@ -19,6 +19,8 @@ def get_extensions():
 
     xpa_dir = os.path.join('cextern', 'xpa')
 
+    cfg['extra_compile_args'].append('-DHAVE_CONFIG_H')
+
     # cflags = ''
     if 'CFLAGS' not in os.environ and struct.calcsize("P") == 4:
         if ulist[0] == 'Darwin' or ulist[4] == 'x86_64':
