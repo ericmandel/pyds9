@@ -47,7 +47,8 @@ def get_extensions():
             ])
 
         cfg['include_dirs'].append(xpa_dir)
-        cfg['sources'].extend(glob(os.path.join(xpa_dir, '*.c')))
+        cfg['sources'].extend([i for i in glob(os.path.join(xpa_dir, '*.c'))
+                               if 'test' not in i])
     else:
         cfg.update(setup_helpers.pkg_config(['libxpa'], ['libxpa']))
 
