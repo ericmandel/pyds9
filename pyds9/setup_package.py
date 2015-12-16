@@ -47,8 +47,14 @@ def get_extensions():
             ])
 
         cfg['include_dirs'].append(xpa_dir)
-        cfg['sources'].extend([i for i in glob(os.path.join(xpa_dir, '*.c'))
-                               if 'test' not in i])
+        sources = ['xpa.c', 'xpaio.c', 'command.c', 'acl.c', 'remote.c',
+                   'clipboard.c', 'port.c', 'tcp.c', 'client.c', 'word.c',
+                   'xalloc.c', 'find.c', 'xlaunch.c', 'timedconn.c',
+                   'tclloop.c', 'tcl.c']
+        cfg['sources'].extend([os.path.join(xpa_dir, s) for s in sources])
+
+        # i for i in glob(os.path.join(xpa_dir, '*.c'))
+        #                    if 'test' not in i])
     else:
         cfg.update(setup_helpers.pkg_config(['libxpa'], ['libxpa']))
 
