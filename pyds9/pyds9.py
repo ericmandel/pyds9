@@ -21,7 +21,7 @@ import array
 import platform
 import textwrap as tw
 
-import xpa
+from . import xpa
 
 import six
 from six import BytesIO
