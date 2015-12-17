@@ -12,6 +12,7 @@ from __future__ import (print_function, absolute_import, division,
                         unicode_literals)
 
 import contextlib
+from distutils.spawn import find_executable
 import sys
 import subprocess
 import shlex
@@ -20,6 +21,7 @@ import time
 import array
 import platform
 import textwrap as tw
+import warnings
 
 from . import xpa
 
@@ -37,10 +39,65 @@ ds9Globals = {}
 
 # platform-specific parameters
 ds9Globals["ulist"] = platform.uname()
-if ds9Globals["ulist"][0] == 'Windows':
-    ds9Globals["progs"] = ['xpans.exe', 'ds9.exe']
-else:
-    ds9Globals["progs"] = ['xpans', 'ds9']
+
+
+def get_xpans_ds9():
+    """Look for xpans and ds9 executable or app
+
+    Returns
+    -------
+    xpans : string
+        full path to the xpans executable
+    ds9 : list of strings
+        path to the ds9 executable or, on OSX, ``["open", "-a"
+        to call the Aqua version.
+    """
+    # create the path there to look for xpans executable
+    xpans_path = os.environ['PATH']
+    pyds9_dir = os.path.dirname(__file__)
+    # it could be the development version, then the executable is in the
+    # ``xpa`` directory containing the c code
+    xpa_dir = os.path.join(os.path.dirname(__file__), 'xpa')
+    xpans_path = os.pathsep.join([pyds9_dir, xpa_dir, xpans_path])
+
+    # find the executables
+    xpans = find_executable('xpans', path=xpans_path)
+    ds9 = [find_executable('ds9')]
+
+    # warning message in case ds9 and/or xpans is not found
+    ds9_warning = ("Can't locate DS9 executable. Please add the DS9 directory"
+                   " to your PATH and try again.")
+    xpans_warning = ("Can't locate xpans executable. Please add the DS9"
+                     " directory to your PATH and try again.")
+
+    if ds9Globals["ulist"][0] == 'Darwin' and not ds9[0]:
+        # on mac OSX the Aqua version can be installed. If this is the case,
+        # look for a "SAOImage DS9.app" directory in ``/Applications``,
+        # ``$HOME`` and ``$HOME/Applications``. If it's found use the mac
+        # ``open`` command
+        ds9_app = "SAOImage DS9.app"
+        user_dir = os.path.expanduser('~')
+        for p in ['/Applications', user_dir,
+                  os.path.join(user_dir, 'Applications')]:
+            ds9_app_dir = os.path.join(p, ds9_app)
+            if os.path.exists(ds9_app_dir):
+                ds9 = ['open', '-a', ds9_app_dir]
+                break
+
+        ds9_warning = ("Can't locate the X11 DS9 executable in your PATH or"
+                       " the Aqua SAOImage DS9 app in /Applications, $HOME"
+                       " or $HOME/Applications. Please configure your PATH or"
+                       " make SAOImage DS9 available in a known location.")
+
+    # warn the user if xpans or ds9 is not found
+    if not xpans:
+        warnings.warn(xpans_warning)
+    if not ds9[0]:
+        warnings.warn(ds9_warning)
+
+    return xpans, ds9
+
+ds9Globals["progs"] = get_xpans_ds9()
 
 # default list of commands that returns binary data that should not be decoded
 ds9Globals['bin_cmd'] = ["array",
@@ -183,6 +240,7 @@ def bytes_to_string(byte):
 
 
 # if xpans is not running, start it up
+
 def ds9_xpans():
     """
     :rtype: 0 => xpans already running, 1 => xpans started by this routine
@@ -193,20 +251,8 @@ def ds9_xpans():
     of ds9 is displayed.
     """
     if xpa.xpaaccess(b"xpans", None, 1) is None:
-        _cmd = False
-        # look in install directories for xpans
-        for _dir in sys.path:
-            _fname = os.path.join(_dir, ds9Globals["progs"][0])
-            if os.path.exists(_fname):
-                _cmd = True
-                break
-        # look in development directory
-        if not _cmd:
-            _fname = os.path.join(os.path.dirname(__file__), 'xpa',
-                                  ds9Globals["progs"][0])
-            if os.path.exists(_fname):
-                _cmd = True
-        if _cmd:
+        _fname = ds9Globals["progs"][0]
+        if _fname:
             # start up xpans
             subprocess.Popen([_fname, "-e"])
             # if ds9 is already running, issue a warning
@@ -392,8 +438,8 @@ class DS9(object):
                     args = list(start)
                 except TypeError:       # Not an iterable object
                     args = []
-            self.pid = subprocess.Popen([ds9Globals["progs"][1], '-title',
-                                         target] + args)
+            self.pid = subprocess.Popen(ds9Globals["progs"][1] +
+                                        ['-title', target] + args)
 
             for i in range(wait):
                 tlist = xpa.xpaaccess(string_to_bytes(target), None, 1024)
@@ -765,7 +811,7 @@ def test():
     while ds9_targets("pytest") == None:
         if tries == 0:
             print("starting ds9 ...")
-            subprocess.Popen([ds9Globals["progs"][1], '-title', 'pytest'])
+            subprocess.Popen(ds9Globals["progs"][1] + ['-title', 'pytest'])
             print("\nwaiting for ds9 to be available ",)
         elif tries == 10:
             raise ValueError("tired of waiting for ds9!")
