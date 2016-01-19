@@ -67,8 +67,7 @@ def get_xpans_ds9():
     # warning message in case ds9 and/or xpans is not found
     ds9_warning = ("Can't locate DS9 executable. Please add the DS9 directory"
                    " to your PATH and try again.")
-    xpans_warning = ("Can't locate xpans executable. Please add the DS9"
-                     " directory to your PATH and try again.")
+    xpans_warning = ("Can't locate xpans executable.")
 
     if ds9Globals["ulist"][0] == 'Darwin' and not ds9[0]:
         # on mac OSX the Aqua version can be installed. If this is the case,
@@ -78,10 +77,11 @@ def get_xpans_ds9():
         ds9_app = "SAOImage DS9.app"
         user_dir = os.path.expanduser('~')
         for p in ['/Applications', user_dir,
-                  os.path.join(user_dir, 'Applications')]:
+                  os.path.join(user_dir, 'Applications'),
+                  os.path.join(user_dir, 'Desktop')]:
             ds9_app_dir = os.path.join(p, ds9_app)
             if os.path.exists(ds9_app_dir):
-                ds9 = ['open', '-a', ds9_app_dir]
+                ds9 = ['open', '-a', ds9_app_dir, '--args']
                 break
 
         ds9_warning = ("Can't locate the X11 DS9 executable in your PATH or"
