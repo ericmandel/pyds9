@@ -30,7 +30,7 @@ ds9.py connects python and ds9 via the xpa messaging system:
 """
 
 # pyds9 version
-__version__ = '1.8.1-dev'
+__version__ = '1.8.1'
 
 # try to be a little bit neat with global parameters
 ds9Globals = {}
