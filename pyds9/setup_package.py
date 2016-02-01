@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 from __future__ import absolute_import
 
-from glob import glob
 import os
 import platform
 import struct
@@ -14,14 +13,12 @@ from astropy_helpers.distutils_helpers import get_distutils_build_option
 
 def get_extensions():
     ulist = platform.uname()
-
-    cfg = setup_helpers.DistutilsExtensionArgs()
-
     xpa_dir = os.path.join('cextern', 'xpa')
 
+    # libxpa configurations
+    cfg = setup_helpers.DistutilsExtensionArgs()
     cfg['extra_compile_args'].append('-DHAVE_CONFIG_H')
 
-    # cflags = ''
     if 'CFLAGS' not in os.environ and struct.calcsize("P") == 4:
         if ulist[0] == 'Darwin' or ulist[4] == 'x86_64':
             os.system('echo "adding -m32 to compiler flags ..."')
@@ -52,13 +49,12 @@ def get_extensions():
                    'xalloc.c', 'find.c', 'xlaunch.c', 'timedconn.c',
                    'tclloop.c', 'tcl.c']
         cfg['sources'].extend([os.path.join(xpa_dir, s) for s in sources])
-
-        # i for i in glob(os.path.join(xpa_dir, '*.c'))
-        #                    if 'test' not in i])
     else:
         cfg.update(setup_helpers.pkg_config(['libxpa'], ['libxpa']))
 
-    return [Extension('pyds9.libxpa', **cfg)]
+    libxpa = Extension('pyds9.libxpa', **cfg)
+
+    return [libxpa, ]
 
 
 def get_package_data():
