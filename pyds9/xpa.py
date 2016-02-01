@@ -2,6 +2,7 @@
 python support for XPA client access
 """
 
+import glob
 import os
 import platform
 import sys
@@ -11,22 +12,13 @@ import ctypes.util
 
 # look for the shared library in sys.path
 def _find_shlib(_libbase):
-    _ulist = platform.uname()
-    if _ulist[0] == 'Darwin':
-        _libname = 'lib' + _libbase + '.dylib'
-    elif ((_ulist[0] == 'Windows') or ((_ulist[0]).find('CYGWIN') != -1)):
-        _libname = 'libxpa.dll'
+
+    dir_ = os.path.dirname(__file__)
+    libxpa = glob.glob(os.path.join(dir_, "libxpa*so*"))
+    if libxpa:
+        return libxpa[0]
     else:
-        _libname = 'lib' + _libbase + '.so'
-    for _dir in sys.path:
-        _fname = os.path.join(_dir, _libname)
-        if os.path.exists(_fname):
-            return _fname
-    # try current directory
-    _fname = os.path.join('./xpa', _libname)
-    if os.path.exists(_fname):
-        return _fname
-    return None
+        return None
 
 _libpath = _find_shlib('xpa')
 if _libpath:
