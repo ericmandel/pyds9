@@ -11,7 +11,6 @@ ds9.py connects python and ds9 via the xpa messaging system:
 from __future__ import (print_function, absolute_import, division,
                         unicode_literals)
 
-import glob
 import contextlib
 import sys
 import subprocess
