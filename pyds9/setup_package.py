@@ -3,6 +3,7 @@ from __future__ import absolute_import
 
 import os
 import platform
+from pprint import pprint
 import struct
 
 from distutils.core import Extension
@@ -65,6 +66,17 @@ def get_package_data():
 
 def get_external_libraries():
     return ['libxpa']
+
+
+def pre_build_hook(cmd):
+    "test of the pre_build_hook"
+    pprint(cmd.__dict__)
+    import pdb; pdb.set_trace()
+
+
+def post_install_hook(cmd):
+    pprint(cmd.__dict__)
+    import pdb; pdb.set_trace()
 
 
 def requires_2to3():
