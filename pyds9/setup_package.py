@@ -2,6 +2,7 @@
 from __future__ import (print_function, absolute_import, division,
                         unicode_literals)
 
+import glob
 import os
 import platform
 from pprint import pprint
@@ -74,32 +75,47 @@ def get_external_libraries():
 
 def post_build_ext_hook(cmd):
     "Build the xpans executable"
+    # get all the important information
     compiler = cmd.compiler
     libxpa = cmd.ext_map['pyds9.libxpa']
     flags = libxpa.extra_compile_args
     include_dirs = libxpa.include_dirs
-    file_name = libxpa._file_name
+    file_name = libxpa._file_name  # I wish there was a public attribute
     build_lib = cmd.build_lib
     build_temp = cmd.build_temp
+    # shorter name for getmtime
+    gettime = os.path.getmtime
+    force_rebuild = get_distutils_build_option('force')
 
-    # use distutils compiler to build the xpans.o
+    # build the file names
     xpans_c = os.path.join('cextern', 'xpa', 'xpans.c')
-    compiler.compile([xpans_c, ], output_dir=build_temp,
-                     include_dirs=include_dirs,
-                     debug=get_distutils_build_option('debug'),
-                     extra_postargs=flags, depends=[xpans_c, ])
-    import pdb; pdb.set_trace()
-    # compile the executable by hand
     xpans_o = os.path.join(build_temp, xpans_c.replace('.c', '.o'))
     xpans = os.path.join(build_lib, cmd.distribution.get_name(), 'xpans')
     libxpa_so = os.path.join(build_lib, file_name)
-    compile_cmd = compiler.compiler
-    compile_cmd += [xpans_o, '-o', xpans, libxpa_so]
-    compile_cmd += flags
-    print(" ".join(compile_cmd))
-    sp.check_call(compile_cmd)
 
-
+    # decide whether to recompile the object file
+    make_obj = not os.path.exists(xpans_o)
+    make_obj |= gettime(xpans_o) < gettime(xpans_c)
+    headers = sum((glob.glob(os.path.join(i, '*.h')) for i in include_dirs),
+                  [])
+    make_obj |= any(gettime(xpans_o) < gettime(i) for i in headers)
+    # use distutils compiler to build the xpans.o
+    if make_obj or force_rebuild:
+        compiler.compile([xpans_c, ], output_dir=build_temp,
+                         include_dirs=include_dirs,
+                         debug=get_distutils_build_option('debug'),
+                         extra_postargs=flags, depends=[xpans_c, ])
+    # decide whether to recompile the executable
+    make_exe = not os.path.exists(xpans)
+    make_exe |= gettime(xpans) < gettime(xpans_o)
+    make_exe |= gettime(xpans) < gettime(libxpa_so)
+    # compile the executable by hand
+    if make_exe or force_rebuild:
+        compile_cmd = compiler.compiler
+        compile_cmd += [xpans_o, '-o', xpans, libxpa_so]
+        compile_cmd += flags
+        print(" ".join(compile_cmd))
+        sp.check_call(compile_cmd)
 
 
 def post_install_hook(cmd):
