@@ -5,7 +5,6 @@ from __future__ import (print_function, absolute_import, division,
 import glob
 import os
 import platform
-from pprint import pprint
 import subprocess as sp
 import struct
 
@@ -94,11 +93,13 @@ def post_build_ext_hook(cmd):
     libxpa_so = os.path.join(build_lib, file_name)
 
     # decide whether to recompile the object file
-    make_obj = not os.path.exists(xpans_o)
-    make_obj |= gettime(xpans_o) < gettime(xpans_c)
-    headers = sum((glob.glob(os.path.join(i, '*.h')) for i in include_dirs),
-                  [])
-    make_obj |= any(gettime(xpans_o) < gettime(i) for i in headers)
+    if os.path.exists(xpans_o):
+        make_obj = gettime(xpans_o) < gettime(xpans_c)
+        headers = sum((glob.glob(os.path.join(i, '*.h'))
+                       for i in include_dirs), [])
+        make_obj |= any(gettime(xpans_o) < gettime(i) for i in headers)
+    else:
+        make_obj = True
     # use distutils compiler to build the xpans.o
     if make_obj or force_rebuild:
         compiler.compile([xpans_c, ], output_dir=build_temp,
@@ -106,9 +107,11 @@ def post_build_ext_hook(cmd):
                          debug=get_distutils_build_option('debug'),
                          extra_postargs=flags, depends=[xpans_c, ])
     # decide whether to recompile the executable
-    make_exe = not os.path.exists(xpans)
-    make_exe |= gettime(xpans) < gettime(xpans_o)
-    make_exe |= gettime(xpans) < gettime(libxpa_so)
+    if os.path.exists(xpans):
+        make_exe = gettime(xpans) < gettime(xpans_o)
+        make_exe |= gettime(xpans) < gettime(libxpa_so)
+    else:
+        make_exe = True
     # compile the executable by hand
     if make_exe or force_rebuild:
         compile_cmd = compiler.compiler
