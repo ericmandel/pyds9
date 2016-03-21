@@ -79,7 +79,6 @@ def post_build_ext_hook(cmd):
     libxpa = cmd.ext_map['pyds9.libxpa']
     flags = libxpa.extra_compile_args
     include_dirs = libxpa.include_dirs
-    file_name = libxpa._file_name  # I wish there was a public attribute
     build_lib = cmd.build_lib
     build_temp = cmd.build_temp
     # shorter name for getmtime
@@ -90,7 +89,7 @@ def post_build_ext_hook(cmd):
     xpans_c = os.path.join('cextern', 'xpa', 'xpans.c')
     xpans_o = os.path.join(build_temp, xpans_c.replace('.c', '.o'))
     xpans = os.path.join(build_lib, cmd.distribution.get_name(), 'xpans')
-    libxpa_so = os.path.join(build_lib, file_name)
+    xpa_o = glob.glob(xpans_o.replace('xpans', '*'))
 
     # decide whether to recompile the object file
     if os.path.exists(xpans_o):
@@ -109,13 +108,13 @@ def post_build_ext_hook(cmd):
     # decide whether to recompile the executable
     if os.path.exists(xpans):
         make_exe = gettime(xpans) < gettime(xpans_o)
-        make_exe |= gettime(xpans) < gettime(libxpa_so)
+        make_obj |= any(gettime(xpans) < gettime(i) for i in xpa_o)
     else:
         make_exe = True
     # compile the executable by hand
     if make_exe or force_rebuild:
         compile_cmd = compiler.compiler
-        compile_cmd += [xpans_o, '-o', xpans, libxpa_so]
+        compile_cmd += ['-o', xpans, xpans_o] + xpa_o
         compile_cmd += flags
         print(" ".join(compile_cmd))
         sp.check_call(compile_cmd)
