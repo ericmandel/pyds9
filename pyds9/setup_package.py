@@ -120,5 +120,16 @@ def post_build_ext_hook(cmd):
         sp.check_call(compile_cmd)
 
 
+def post_install_egg_info_hook(cmd):
+    import pprint
+    pprint.pprint(cmd.__dict__)
+    # import pdb; pdb.set_trace()
+
+
+def post_egg_info_hook(cmd):
+    import pprint
+    pprint.pprint(cmd.__dict__)
+    # import pdb; pdb.set_trace()
+
 def requires_2to3():
     return False
