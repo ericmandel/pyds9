@@ -120,16 +120,15 @@ def post_build_ext_hook(cmd):
         sp.check_call(compile_cmd)
 
 
-def post_install_egg_info_hook(cmd):
-    import pprint
-    pprint.pprint(cmd.__dict__)
-    # import pdb; pdb.set_trace()
+def post_install_hook(cmd):
+    path = cmd.install_lib
+    dist_name = cmd.config_vars['dist_name']  # pyds9
 
+    print(os.path.join(path, dist_name + '*', '*installed*'))
+    installed_files = glob.glob(os.path.join(path, dist_name + '*',
+                                             '*installed*'))
+    print(installed_files)
 
-def post_egg_info_hook(cmd):
-    import pprint
-    pprint.pprint(cmd.__dict__)
-    # import pdb; pdb.set_trace()
 
 def requires_2to3():
     return False
