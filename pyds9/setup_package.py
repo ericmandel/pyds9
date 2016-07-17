@@ -16,7 +16,8 @@ from astropy_helpers.distutils_helpers import get_distutils_build_option
 
 def get_extensions():
     ulist = platform.uname()
-    xpa_dir = os.path.join('cextern', 'xpa')
+    abspath = os.path.dirname(os.path.dirname(__file__))
+    xpa_dir = os.path.join(abspath, 'cextern', 'xpa')
     debug = get_distutils_build_option('debug')
 
     # libxpa configurations
