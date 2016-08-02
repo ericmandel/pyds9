@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
-from __future__ import (print_function, absolute_import, division,
-                        unicode_literals)
+from __future__ import (print_function, absolute_import, division)
 
 from contextlib import contextmanager
 import glob
