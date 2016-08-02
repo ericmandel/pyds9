@@ -88,7 +88,7 @@ def pre_build_ext_hook(cmd):
     xpa_dir = [i for i in libxpa.include_dirs if 'xpa' in i][0]
 
     with cd(xpa_dir):
-        sp.check_call([os.path.join('.', 'configure'), ])
+        sp.check_call([os.path.join('.', 'configure'), '--without-tcl'])
 
 
 def post_build_ext_hook(cmd):
