@@ -2,6 +2,7 @@
 from __future__ import (print_function, absolute_import, division,
                         unicode_literals)
 
+from contextlib import contextmanager
 import glob
 import os
 import platform
@@ -14,10 +15,19 @@ from astropy_helpers import setup_helpers
 from astropy_helpers.distutils_helpers import get_distutils_build_option
 
 
+@contextmanager
+def cd(newdir):
+    prevdir = os.getcwd()
+    os.chdir(os.path.expanduser(newdir))
+    try:
+        yield
+    finally:
+        os.chdir(prevdir)
+
+
 def get_extensions():
     ulist = platform.uname()
-    abspath = os.path.dirname(os.path.dirname(__file__))
-    xpa_dir = os.path.join(abspath, 'cextern', 'xpa')
+    xpa_dir = os.path.join('cextern', 'xpa')
     debug = get_distutils_build_option('debug')
 
     # libxpa configurations
@@ -73,6 +83,15 @@ def get_external_libraries():
     return ['libxpa']
 
 
+def pre_build_ext_hook(cmd):
+    "Run configure to get all the needed files"
+    libxpa = cmd.ext_map['pyds9.libxpa']
+    xpa_dir = [i for i in libxpa.include_dirs if 'xpa' in i][0]
+
+    with cd(xpa_dir):
+        sp.check_call([os.path.join('.', 'configure'), ])
+
+
 def post_build_ext_hook(cmd):
     "Build the xpans executable"
     # get all the important information
@@ -119,7 +138,6 @@ def post_build_ext_hook(cmd):
         compile_cmd += flags
         print(" ".join(compile_cmd))
         sp.check_call(compile_cmd)
-
 
 
 def requires_2to3():
