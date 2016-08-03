@@ -30,7 +30,7 @@ from astropy.extern.six import BytesIO
 
 
 # pyds9 version
-__version__ = '1.8'
+__version__ = '1.8.1'
 
 __all__ = ['DS9', 'ds9', 'ds9_openlist', 'ds9_targets', 'ds9_xpans']
 
@@ -362,7 +362,7 @@ class DS9(object):
     access to/from python objects:
 
     - get_arr2np: retrieve a FITS image or an array into a numpy array
-    - get_np2arr: send a numpy array to ds9 for display
+    - set_np2arr: send a numpy array to ds9 for display
     - get_pyfits: retrieve a FITS image into a pyfits (or astropy) hdu list
     - set_pyfits: send a pyfits (or astropy) hdu list to ds9 for display
 
