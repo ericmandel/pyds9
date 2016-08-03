@@ -483,7 +483,13 @@ class DS9(object):
             raise AttributeError('attribute modification is not permitted: %s'
                                  % attrname)
         else:
-            self.__dict__[attrname] = value
+            propobj = getattr(self.__class__, attrname, None)
+            if isinstance(propobj, property):
+                if propobj.fset is None:
+                    raise AttributeError("can't set attribute")
+                propobj.fset(self, value)
+            else:
+                self.__dict__[attrname] = value
 
     def _selftest(self):
         """
