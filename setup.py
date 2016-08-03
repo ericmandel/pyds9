@@ -16,13 +16,16 @@ else:
 builtins._ASTROPY_SETUP_ = True
 
 from astropy_helpers.setup_helpers import (
-    register_commands, adjust_compiler, get_debug_option, get_package_info)
+    register_commands, get_debug_option, get_package_info)
 from astropy_helpers.git_helpers import get_git_devstr
 from astropy_helpers.version_helpers import generate_version_py
 
 # Get some values from the setup.cfg
-from distutils import config
-conf = config.ConfigParser()
+try:
+    from ConfigParser import ConfigParser
+except ImportError:
+    from configparser import ConfigParser
+conf = ConfigParser()
 conf.read(['setup.cfg'])
 metadata = dict(conf.items('metadata'))
 
@@ -55,10 +58,6 @@ if not RELEASE:
 # invoking any other functionality from distutils since it can potentially
 # modify distutils' behavior.
 cmdclassd = register_commands(PACKAGENAME, VERSION, RELEASE)
-
-# Adjust the compiler in case the default on this platform is to use a
-# broken one.
-adjust_compiler(PACKAGENAME)
 
 # Freeze build information in version.py
 generate_version_py(PACKAGENAME, VERSION, RELEASE,
@@ -106,7 +105,8 @@ setup(name=PACKAGENAME,
       version=VERSION,
       description=DESCRIPTION,
       scripts=scripts,
-      install_requires=['astropy'],
+      setup_requires=['numpy'],
+      install_requires=['astropy', 'numpy'],
       author=AUTHOR,
       author_email=AUTHOR_EMAIL,
       license=LICENSE,
