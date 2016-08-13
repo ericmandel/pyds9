@@ -12,4 +12,4 @@ xpa
 xpa library copied from https://github.com/ericmandel/xpa.git.
 
 As of 12.08.2016 the version copied here is the one from commit:
-ef0b23c3526128e0af4fb3a1b2eba38601b1bd35
+0317c0fd0f38c717a6c75f53df8f63d4a84978dc

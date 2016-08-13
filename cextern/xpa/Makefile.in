@@ -351,7 +351,8 @@ clean:
 		$(RM) -r autom4te.cache a.out.dSYM
 
 distclean:	clean
-		$(RM) Makefile config.status config.cache config.log
+		$(RM) Makefile config.status config.cache config.log conf.h \
+		xpa.pc
 
 maintainer-clean:: clean
 		$(RM) config.status config.cache config.log
