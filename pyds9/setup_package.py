@@ -92,7 +92,8 @@ def pre_build_ext_hook(cmd):
 
 
 def post_build_ext_hook(cmd):
-    "Build the xpans executable"
+    """Build the xpans executable and then run ``make distclean`` in the xpa
+    directory"""
     # get all the important information
     compiler = cmd.compiler
     libxpa = cmd.ext_map['pyds9.libxpa']
@@ -137,6 +138,12 @@ def post_build_ext_hook(cmd):
         compile_cmd += flags
         print(" ".join(compile_cmd))
         sp.check_call(compile_cmd)
+
+    # run make clean
+    xpa_dir = [i for i in libxpa.include_dirs if 'xpa' in i][0]
+
+    with cd(xpa_dir):
+        sp.check_call(['make', 'distclean'])
 
 
 def requires_2to3():
