@@ -53,16 +53,17 @@ def get_xpans_ds9():
         to call the Aqua version.
     """
     # create the path there to look for xpans executable
-    xpans_path = os.environ['PATH']
+    os_path = os.environ['PATH']
     pyds9_dir = os.path.dirname(__file__)
-    # it could be the development version, then the executable is in the
-    # ``xpa`` directory containing the c code
-    xpa_dir = os.path.join(os.path.dirname(__file__), 'xpa')
-    xpans_path = os.pathsep.join([pyds9_dir, xpa_dir, xpans_path])
+    xpans_path = os.pathsep.join([pyds9_dir, os_path])
 
     # find the executables
-    xpans = find_executable('xpans', path=xpans_path)
-    ds9 = [find_executable('ds9')]
+    if ds9Globals["ulist"][0] == 'Windows':
+        xpans_exe, ds9_exe = 'xpans.exe', 'ds9.exe'
+    else:
+        xpans_exe, ds9_exe = 'xpans', 'ds9'
+    xpans = find_executable(xpans_exe, path=xpans_path)
+    ds9 = [find_executable(ds9_exe)]
 
     # warning message in case ds9 and/or xpans is not found
     ds9_warning = ("Can't locate DS9 executable. Please add the DS9 directory"
@@ -814,7 +815,7 @@ def test():
     # start ds9 if necessary
     tries = 0
     print("looking for our 'pytest' ds9 ...")
-    while ds9_targets("pytest") == None:
+    while ds9_targets("pytest") is None:
         if tries == 0:
             print("starting ds9 ...")
             subprocess.Popen(ds9Globals["progs"][1] + ['-title', 'pytest'])
