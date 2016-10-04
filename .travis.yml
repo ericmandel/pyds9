@@ -40,6 +40,9 @@ env:
         # line to use the X virtual framebuffer.
         # - SETUP_XVFB=True
 
+        # set XPA_METHOD to avoid locking the tests
+        - XPA_METHOD=local
+
     matrix:
         # Make sure that egg_info works without dependencies
         - SETUP_CMD='egg_info'
