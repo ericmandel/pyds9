@@ -75,7 +75,7 @@ Reference/API
 -------------
 .. from astropy template
 
-.. automodapi:: packagename
+.. automodapi:: pyds9
 
 Indices and tables
 ==================
