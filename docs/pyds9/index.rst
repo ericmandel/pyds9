@@ -24,7 +24,7 @@ pyds9 is available from GitHub:
 To install in the default directory::
 
 	# install in default system directory
-	> python setup.py install
+	> pip install git+https://github.com/ericmandel/pyds9.git
 
 or to install in a user-specified directory::
 
