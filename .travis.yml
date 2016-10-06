@@ -16,6 +16,7 @@ sudo: false
 addons:
     apt:
         packages:
+            - ds9
             - graphviz
             - texlive-latex-extra
             - dvipng
