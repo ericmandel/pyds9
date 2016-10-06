@@ -16,7 +16,6 @@ sudo: false
 addons:
     apt:
         packages:
-            - ds9
             - graphviz
             - texlive-latex-extra
             - dvipng
@@ -35,7 +34,8 @@ env:
         # For this package-template, we include examples of Cython modules,
         # so Cython is required for testing. If your package does not include
         # Cython code, you can set CONDA_DEPENDENCIES=''
-        - CONDA_DEPENDENCIES='Cython'
+        - CONDA_DEPENDENCIES='Cython ds9'
+        - CONDA_CHANNELS='http://ssb.stsci.edu/astroconda'
 
         # If there are matplotlib or other GUI tests, uncomment the following
         # line to use the X virtual framebuffer.
