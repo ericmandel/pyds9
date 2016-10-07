@@ -99,6 +99,12 @@ matrix:
         - python: 3.5
           env: NUMPY_VERSION=prerelease
 
+        # Try without cython
+        - python: 3.5
+          env:
+              - CONDA_DEPENDENCIES='ds9'
+              - SETUP_CMD='egg_info'
+
 install:
 
     # We now use the ci-helpers package to set up our testing environment.
