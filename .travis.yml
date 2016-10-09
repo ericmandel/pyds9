@@ -102,7 +102,7 @@ matrix:
         # Try without cython
         - python: 3.5
           env:
-              - CONDA_DEPENDENCIES='ds9'
+              - CONDA_DEPENDENCIES='numpy ds9'
               - SETUP_CMD='egg_info'
 
 install:
