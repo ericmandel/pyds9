@@ -1,9 +1,10 @@
-language: python
+# We set the language to c because python isn't supported on the MacOS X nodes
+# on Travis. However, the language ends up being irrelevant anyway, since we
+# install Python ourselves using conda.
+language: c
 
-python:
-    - 2.7
-    - 3.4
-    - 3.5
+os:
+    - linux
 
 # Setting sudo to false opts in to Travis-CI container-based builds.
 sudo: false
@@ -26,15 +27,17 @@ env:
         # The following versions are the 'default' for tests, unless
         # overridden underneath. They are defined here in order to save having
         # to repeat them for all configurations.
+        - PYTHON_VERSION=3.5
         - NUMPY_VERSION=stable
         - ASTROPY_VERSION=stable
+        - MAIN_CMD='python setup.py'
         - SETUP_CMD='test'
         - PIP_DEPENDENCIES=''
 
         # For this package-template, we include examples of Cython modules,
         # so Cython is required for testing. If your package does not include
         # Cython code, you can set CONDA_DEPENDENCIES=''
-        - CONDA_DEPENDENCIES='Cython ds9'
+        - CONDA_DEPENDENCIES='Cython ds9 astropy numpy'
         - CONDA_CHANNELS='http://ssb.stsci.edu/astroconda'
 
         # If there are matplotlib or other GUI tests, uncomment the following
@@ -45,65 +48,65 @@ env:
         - XPA_METHOD=local
 
     matrix:
-        # Make sure that egg_info works without dependencies
-        - SETUP_CMD='egg_info'
-        # Try all python versions with the latest numpy
-        - SETUP_CMD='test'
+        - PYTHON_VERSION=2.7 SETUP_CMD='egg_info'
+        - PYTHON_VERSION=3.3 SETUP_CMD='egg_info'
+        - PYTHON_VERSION=3.4 SETUP_CMD='egg_info'
+        - PYTHON_VERSION=3.5 SETUP_CMD='egg_info'
 
 matrix:
+
+    # Don't wait for allowed failures
+    fast_finish: true
+
     include:
 
-        # Do a coverage test in Python 2.
-        - python: 2.7
-          env: SETUP_CMD='test --coverage'
+        # Try MacOS X
+        - os: osx
+          env: SETUP_CMD='test'
 
         # Check for sphinx doc build warnings - we do this first because it
-        # may run for a long time
-        - python: 3.5
-          env: SETUP_CMD='build_sphinx -w'
+        # runs for a long time. The sphinx build also has some additional
+        # dependencies.
+        - os: linux
+          env: SETUP_CMD='build_docs -w'
+               CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
 
-        # Try Astropy development version
-        - python: 2.7
-          env: ASTROPY_VERSION=development
-        - python: 3.5
-          env: ASTROPY_VERSION=development
-        - python: 2.7
-          env: ASTROPY_VERSION=lts
-        - python: 3.5
-          env: ASTROPY_VERSION=lts
+        # Try all python versions and Numpy versions. Since we can assume that
+        # the Numpy developers have taken care of testing Numpy with different
+        # versions of Python, we can vary Python and Numpy versions at the same
+        # time. Since we test the latest Numpy as part of the builds with all
+        # optional dependencies below, we can focus on older builds here.
+        - os: linux
+          env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.7 SETUP_CMD='test --open-files'
+        - os: linux
+          env: PYTHON_VERSION=3.3 NUMPY_VERSION=1.8 SETUP_CMD='test --open-files'
+        - os: linux
+          env: PYTHON_VERSION=3.4 NUMPY_VERSION=1.9 SETUP_CMD='test --open-files'
+        - os: linux
+          env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.10 SETUP_CMD='test --open-files'
 
-        # Python 2.6 and 3.3 doesn't have numpy 1.10 in conda, they can be put
-        # back into the main matrix once the numpy build is available in the
-        # astropy-ci-extras channel (or in the one provided in the
-        # CONDA_CHANNELS environmental variable).
-        - python: 2.6
-          env: SETUP_CMD='egg_info'
-        - python: 2.6
-          env: SETUP_CMD='test' NUMPY_VERSION=1.9
-        - python: 3.3
-          env: SETUP_CMD='egg_info'
-        - python: 3.3
-          env: SETUP_CMD='test' NUMPY_VERSION=1.9
+        # Do a coverage test in Python 3.
+        # - os: linux
+        #   env: PYTHON_VERSION=3.5 SETUP_CMD='test --coverage'
 
-        # Try older numpy versions
-        - python: 2.7
-          env: NUMPY_VERSION=1.10
-        - python: 2.7
-          env: NUMPY_VERSION=1.9
-        - python: 2.7
-          env: NUMPY_VERSION=1.8
-        - python: 2.7
-          env: NUMPY_VERSION=1.7
+        # Try pre-release version of Numpy without optional dependencies
+        - os: linux
+          env: NUMPY_VERSION=prerelease SETUP_CMD='test'
 
-        # Try numpy pre-release
-        - python: 3.5
-          env: NUMPY_VERSION=prerelease
+
+        # Try Astropy development and lts version
+        - os: linux
+          env: PYTHON_VERSION=2.7 ASTROPY_VERSION=development
+        - os: linux
+          env: PYTHON_VERSION=3.5 ASTROPY_VERSION=development
+        - os: linux
+          env: PYTHON_VERSION=2.7 ASTROPY_VERSION=lts
+        - os: linux
+          env: PYTHON_VERSION=3.5 ASTROPY_VERSION=lts
 
         # Try without cython
-        - python: 3.5
-          env:
-              - CONDA_DEPENDENCIES='numpy ds9'
-              - SETUP_CMD='egg_info'
+        - os: linux
+          env: PYTHON_VERSION=3.5 CONDA_DEPENDENCIES='numpy ds9 astropy'
 
 install:
 
@@ -131,7 +134,7 @@ install:
     # other dependencies.
 
 script:
-   - python setup.py $SETUP_CMD
+   - $MAIN_CMD $SETUP_CMD
 
 after_success:
     # If coveralls.io is set up for this package, uncomment the line
