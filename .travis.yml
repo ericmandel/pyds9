@@ -91,10 +91,9 @@ matrix:
         - python: 3.5
           env: ASTROPY_VERSION=development
         - python: 2.7
-          env: ASTROPY_VERSION=lts
+          env: ASTROPY_VERSION=lts NUMPY_VERSION=1.10
         - python: 3.5
-          env: ASTROPY_VERSION=lts
-
+          env: ASTROPY_VERSION=lts NUMPY_VERSION=1.10
 
         # Try without cython
         - python: 3.5
