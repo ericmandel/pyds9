@@ -117,6 +117,8 @@ after_success:
     # - if [[ $SETUP_CMD == 'test --coverage' ]]; then coveralls --rcfile='packagename/tests/coveragerc'; fi
 
 notifications:
-    email:
-        recipients:
-            - franz.bergesund@gmail.com
+  email:
+    recipients:
+      - franz.bergesund@gmail.com
+    on_success: change
+    on_failure: always
