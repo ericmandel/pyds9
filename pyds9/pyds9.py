@@ -58,7 +58,9 @@ def get_xpans_ds9():
     xpans_path = os.pathsep.join([pyds9_dir, os_path])
 
     # find the executables
-    if ds9Globals["ulist"][0] == 'Windows':
+    print(ds9Globals["ulist"])
+    if ((ds9Globals["ulist"][0] == 'Windows') or
+            (ds9Globals["ulist"][0].find('CYGWIN') != -1)):
         xpans_exe, ds9_exe = 'xpans.exe', 'ds9.exe'
     else:
         xpans_exe, ds9_exe = 'xpans', 'ds9'
