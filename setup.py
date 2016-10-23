@@ -15,8 +15,8 @@ else:
     import __builtin__ as builtins
 builtins._ASTROPY_SETUP_ = True
 
-from astropy_helpers.setup_helpers import (
-    register_commands, get_debug_option, get_package_info)
+from astropy_helpers.setup_helpers import (register_commands, get_debug_option,
+                                           get_package_info)
 from astropy_helpers.git_helpers import get_git_devstr
 from astropy_helpers.version_helpers import generate_version_py
 
@@ -25,6 +25,7 @@ try:
     from ConfigParser import ConfigParser
 except ImportError:
     from configparser import ConfigParser
+
 conf = ConfigParser()
 conf.read(['setup.cfg'])
 metadata = dict(conf.items('metadata'))

@@ -14,6 +14,9 @@ from astropy_helpers import setup_helpers
 from astropy_helpers.distutils_helpers import get_distutils_build_option
 
 
+libxpa_extension_name = 'pyds9.libxpa'
+
+
 @contextmanager
 def cd(newdir):
     prevdir = os.getcwd()
@@ -67,7 +70,7 @@ def get_extensions():
     else:
         cfg.update(setup_helpers.pkg_config(['libxpa'], ['libxpa']))
 
-    libxpa = Extension('pyds9.libxpa', **cfg)
+    libxpa = Extension(libxpa_extension_name, **cfg)
 
     return [libxpa, ]
 
@@ -84,7 +87,7 @@ def get_external_libraries():
 
 def pre_build_ext_hook(cmd):
     "Run configure to get all the needed files"
-    libxpa = cmd.ext_map['pyds9.libxpa']
+    libxpa = [e for e in cmd.extensions if e.name == libxpa_extension_name][0]
     xpa_dir = [i for i in libxpa.include_dirs if 'xpa' in i][0]
 
     with cd(xpa_dir):
@@ -96,7 +99,7 @@ def post_build_ext_hook(cmd):
     directory"""
     # get all the important information
     compiler = cmd.compiler
-    libxpa = cmd.ext_map['pyds9.libxpa']
+    libxpa = [e for e in cmd.extensions if e.name == libxpa_extension_name][0]
     flags = libxpa.extra_compile_args
     include_dirs = libxpa.include_dirs
     build_lib = cmd.build_lib
@@ -133,8 +136,9 @@ def post_build_ext_hook(cmd):
         make_exe = True
     # compile the executable by hand
     if make_exe or force_rebuild:
+        objects = list(set(xpa_o + [xpans_o, ]))
         compile_cmd = compiler.compiler
-        compile_cmd += ['-o', xpans, xpans_o] + xpa_o
+        compile_cmd += ['-o', xpans] + objects
         compile_cmd += flags
         print(" ".join(compile_cmd))
         sp.check_call(compile_cmd)

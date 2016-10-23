@@ -6,7 +6,7 @@
 Welcome to pyds9's documentation!
 =================================
 
-.. module:: pyds9
+.. currentmodule:: pyds9
 
 **A Python Connection to DS9 via XPA**
 
@@ -24,7 +24,7 @@ pyds9 is available from GitHub:
 To install in the default directory::
 
 	# install in default system directory
-	> python setup.py install
+	> pip install git+https://github.com/ericmandel/pyds9.git
 
 or to install in a user-specified directory::
 
@@ -57,16 +57,19 @@ The DS9 Class
 
 .. autoclass:: DS9
    :members: __init__, get, set, info, access, get_pyfits, set_pyfits, get_arr2np, set_np2arr
+   :noindex:
 
 Auxiliary Routines
 ------------------
 
 .. autofunction:: ds9_targets
+   :noindex:
 
 .. autofunction:: ds9_openlist
+   :noindex:
 
 .. autofunction:: ds9_xpans
-
+   :noindex:
 
 .. toctree::
    :maxdepth: 2
@@ -75,7 +78,7 @@ Reference/API
 -------------
 .. from astropy template
 
-.. automodapi:: packagename
+.. automodapi:: pyds9
 
 Indices and tables
 ==================
