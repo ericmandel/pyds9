@@ -15,9 +15,7 @@ def _find_shlib(_libbase):
     _ulist = platform.uname()
     _libbase = 'lib' + _libbase
 
-    if _ulist[0] == 'Darwin':
-        _libname = _libbase + '*dylib*'
-    elif ((_ulist[0] == 'Windows') or ((_ulist[0]).find('CYGWIN') != -1)):
+    if ((_ulist[0] == 'Windows') or ((_ulist[0]).find('CYGWIN') != -1)):
         _libname = _libbase + '*dll*'
     else:
         _libname = _libbase + '*so*'
