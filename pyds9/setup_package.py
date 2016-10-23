@@ -91,14 +91,20 @@ def pre_build_ext_hook(cmd):
     xpa_dir = [i for i in libxpa.include_dirs if 'xpa' in i][0]
 
     ulist = platform.uname()
-    if ((ulist[0] == 'Windows') or (ulist[0].find('CYGWIN') != -1)):
-        cmd = ['sh', 'configure']
+    is_win = (ulist[0] == 'Windows') or (ulist[0].find('CYGWIN') != -1)
+
+    options = ['--without-tcl', ]
+    use_shell = False
+
+    if is_win:
+        cmd = ['sh', 'configure'] + options
+        cmd = ' '.join(cmd)
+        use_shell = True
     else:
-        cmd = [os.path.join('.', 'configure'), ]
-    cmd.append('--without-tcl')
+        cmd = [os.path.join('.', 'configure'), ] + options
 
     with cd(xpa_dir):
-        sp.check_call(cmd)
+        sp.check_call(cmd, shell=use_shell)
 
 
 def post_build_ext_hook(cmd):
