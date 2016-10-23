@@ -62,7 +62,7 @@ matrix:
 
         # Check for sphinx doc build warnings - we do this first because it
         # may run for a long time
-        - env: SETUP_CMD='build_docs -w'
+        - env: SETUP_CMD='build_docs -w' PYDS9_NOXPANS=true
 
         # Try older numpy versions
         - env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.7
