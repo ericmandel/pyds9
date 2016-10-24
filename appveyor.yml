@@ -13,7 +13,8 @@ environment:
       # For this package-template, we include examples of Cython modules,
       # so Cython is required for testing. If your package does not include
       # Cython code, you can set CONDA_DEPENDENCIES=''
-      CONDA_DEPENDENCIES: "Cython"
+      CONDA_DEPENDENCIES: "Cython ds9"
+      CONDA_CHANNELS: 'http://ssb.stsci.edu/astroconda'
 
   matrix:
 
@@ -42,3 +43,11 @@ build: false
 
 test_script:
     - "%CMD_IN_ENV% python setup.py test"
+
+notifications:
+  - provider: Email
+    to:
+      - franz.bergesund@gmail.com
+    on_build_success: false
+    on_build_failure: true
+    on_build_status_changed: true
