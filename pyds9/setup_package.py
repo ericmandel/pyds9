@@ -16,6 +16,9 @@ from astropy_helpers.distutils_helpers import get_distutils_build_option
 
 libxpa_extension_name = 'pyds9.libxpa'
 
+ulist = platform.uname()
+is_win = (ulist[0] == 'Windows') or (ulist[0].find('CYGWIN') != -1)
+
 
 @contextmanager
 def cd(newdir):
@@ -53,13 +56,14 @@ def get_extensions():
         if not debug:
             # All of these switches are to silence warnings from compiling
             cfg['extra_compile_args'].extend([
-                '-Wno-declaration-after-statement',
                 '-Wno-unused-variable', '-Wno-parentheses',
                 '-Wno-uninitialized', '-Wno-format',
                 '-Wno-strict-prototypes', '-Wno-unused', '-Wno-comments',
                 '-Wno-switch', '-Wno-strict-aliasing', '-Wno-return-type',
                 '-Wno-address', '-Wno-unused-result'
             ])
+            if not is_win:
+                cfg['extra_compile_args'].append('-Wno-declaration-after-statement')
 
         cfg['include_dirs'].append(xpa_dir)
         sources = ['xpa.c', 'xpaio.c', 'command.c', 'acl.c', 'remote.c',
@@ -89,9 +93,6 @@ def pre_build_ext_hook(cmd):
     "Run configure to get all the needed files"
     libxpa = [e for e in cmd.extensions if e.name == libxpa_extension_name][0]
     xpa_dir = [i for i in libxpa.include_dirs if 'xpa' in i][0]
-
-    ulist = platform.uname()
-    is_win = (ulist[0] == 'Windows') or (ulist[0].find('CYGWIN') != -1)
 
     if is_win:
         cmd = ['sh', 'configure']
