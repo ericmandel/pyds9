@@ -17,7 +17,7 @@ from astropy_helpers.distutils_helpers import get_distutils_build_option
 libxpa_extension_name = 'pyds9.libxpa'
 
 ulist = platform.uname()
-is_win = (ulist[0] == 'Windows') or (ulist[0].find('CYGWIN') != -1)
+is_windows = (ulist[0] == 'Windows') or (ulist[0].find('CYGWIN') != -1)
 
 
 @contextmanager
@@ -46,14 +46,8 @@ def get_extensions():
             cflags = '-m32'
             cfg['extra_compile_args'].append(cflags)
 
-    # cfg['extra_compile_args'].extend([# '--enable-shared',
-    #                                   '--without-tcl',
-    #                                   cflags])
-
-    # import pdb; pdb.set_trace()
-
     if not setup_helpers.use_system_library('libxpa'):
-        if not debug:
+        if not debug and not is_windows:
             # All of these switches are to silence warnings from compiling
             cfg['extra_compile_args'].extend([
                 '-Wno-unused-variable', '-Wno-parentheses',
@@ -62,8 +56,6 @@ def get_extensions():
                 '-Wno-switch', '-Wno-strict-aliasing', '-Wno-return-type',
                 '-Wno-address', '-Wno-unused-result'
             ])
-            if not is_win:
-                cfg['extra_compile_args'].append('-Wno-declaration-after-statement')
 
         cfg['include_dirs'].append(xpa_dir)
         sources = ['xpa.c', 'xpaio.c', 'command.c', 'acl.c', 'remote.c',
@@ -94,7 +86,7 @@ def pre_build_ext_hook(cmd):
     libxpa = [e for e in cmd.extensions if e.name == libxpa_extension_name][0]
     xpa_dir = [i for i in libxpa.include_dirs if 'xpa' in i][0]
 
-    if is_win:
+    if is_windows:
         cmd = ['sh', 'configure']
     else:
         cmd = [os.path.join('.', 'configure'), ]
