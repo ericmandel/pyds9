@@ -93,18 +93,14 @@ def pre_build_ext_hook(cmd):
     ulist = platform.uname()
     is_win = (ulist[0] == 'Windows') or (ulist[0].find('CYGWIN') != -1)
 
-    options = ['--without-tcl', ]
-    use_shell = False
-
     if is_win:
-        cmd = ['sh', 'configure'] + options
-        cmd = ' '.join(cmd)
-        use_shell = True
+        cmd = ['sh', 'configure']
     else:
-        cmd = [os.path.join('.', 'configure'), ] + options
+        cmd = [os.path.join('.', 'configure'), ]
+    cmd.append('--without-tcl')
 
     with cd(xpa_dir):
-        sp.check_call(cmd, shell=use_shell)
+        sp.check_call(cmd)
 
 
 def post_build_ext_hook(cmd):
