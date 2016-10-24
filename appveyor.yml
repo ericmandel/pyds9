@@ -13,8 +13,8 @@ environment:
       # For this package-template, we include examples of Cython modules,
       # so Cython is required for testing. If your package does not include
       # Cython code, you can set CONDA_DEPENDENCIES=''
-      CONDA_DEPENDENCIES: "Cython ds9"
-      CONDA_CHANNELS: 'http://ssb.stsci.edu/astroconda'
+      CONDA_DEPENDENCIES: "Cython" # ds9"
+      # CONDA_CHANNELS: 'http://ssb.stsci.edu/astroconda'
 
   matrix:
 
