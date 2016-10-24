@@ -1,5 +1,7 @@
 # Python connection to ds9 via XPA
 
+[![Build Status](https://travis-ci.org/ericmandel/pyds9.svg?branch=master)](https://travis-ci.org/ericmandel/pyds9)
+
 The [XPA messaging system](https://github.com/ericmandel/xpa) provides 
 seamless communication between many kinds of Unix programs, including Tcl/Tk
 programs such as ds9. The ``pyds9`` module uses a Python interface to XPA to 
