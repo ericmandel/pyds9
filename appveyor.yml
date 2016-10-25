@@ -6,7 +6,7 @@ environment:
     global:
         PYTHON: "C:\\conda"
         MINICONDA_VERSION: "latest"
-        CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\ci-helpers\\appveyor\\windows_sdk.cmd"
+        # CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\ci-helpers\\appveyor\\windows_sdk.cmd"
         PYTHON_ARCH: "64" # needs to be set for CMD_IN_ENV to succeed. If a mix
                           # of 32 bit and 64 bit builds are needed, move this
                           # to the matrix section.
@@ -52,7 +52,8 @@ install:
 build: false
 
 test_script:
-    - "%CMD_IN_ENV% python setup.py test"
+    # - "%CMD_IN_ENV% python setup.py test"
+    - "python setup.py test"
 
 notifications:
     - provider: Email
