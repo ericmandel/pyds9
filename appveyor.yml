@@ -37,8 +37,8 @@ platform:
 # os: Visual Studio 2015 Update 2
 
 install:
-    - appveyor DownloadFile https://cygwin.com/setup-x86_64.exe -FileName C:\cygwin\setup-x86_64.exe
-    - C:\cygwin\setup-x86_64.exe -qnNdO -R C:/cygwin -s http://cygwin.mirror.constant.com -l C:/cygwin/var/cache/setup
+    - appveyor DownloadFile https://cygwin.com/setup-x86_64.exe -FileName C:\cygwin64\setup-x86_64.exe
+    - C:\cygwin64\setup-x86_64.exe -qnNdO -R C:/cygwin64 -s http://cygwin.mirror.constant.com -l C:/cygwin64/var/cache/setup
     - "git clone git://github.com/astropy/ci-helpers.git"
     - "powershell ci-helpers/appveyor/install-miniconda.ps1"
     - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
