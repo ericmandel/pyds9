@@ -52,7 +52,8 @@ install:
 build: false
 
 test_script:
-    - "%CMD_IN_ENV% python setup.py test"
+    # - "%CMD_IN_ENV% python setup.py test"
+    - CC=C:\cygwin64\bin\gcc python setup.py test
 
 notifications:
     - provider: Email
