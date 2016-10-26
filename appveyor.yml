@@ -18,7 +18,8 @@ environment:
 init:
   - "ECHO %PYTHON% %PYTHON_VERSION% %PYTHON_ARCH%"
  
-# install:
+install:
+    - "%PYTHON%/pip install numpy astropy cython"
 #  - "powershell appveyor\\install.ps1"
 #  - "set HOME=%APPVEYOR_BUILD_FOLDER%"
  
