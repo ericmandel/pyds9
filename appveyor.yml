@@ -2,67 +2,33 @@
 # Windows
 
 environment:
+ 
+  global:
+    # SDK v7.0 MSVC Express 2008's SetEnv.cmd script will fail if the
+    # /E:ON and /V:ON options are not enabled in the batch script intepreter
+    # See: http://stackoverflow.com/a/13751649/163740
+    WITH_COMPILER: "cmd /E:ON /V:ON /C .\\appveyor\\run_with_compiler.cmd"
+ 
+  matrix:
+    - PYTHON: "C:\\Python27"
+      PYTHON_VERSION: "2.7.8"
+      PYTHON_ARCH: "32"
+      DISTRIBUTIONS: "sdist bdist_wheel"
 
-    global:
-        PYTHON: "C:\\conda"
-        MINICONDA_VERSION: "latest"
-        CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\ci-helpers\\appveyor\\windows_sdk.cmd"
-        PYTHON_ARCH: "64" # needs to be set for CMD_IN_ENV to succeed. If a mix
-                          # of 32 bit and 64 bit builds are needed, move this
-                          # to the matrix section.
-        # For this package-template, we include examples of Cython modules,
-        # so Cython is required for testing. If your package does not include
-        # Cython code, you can set CONDA_DEPENDENCIES=''
-        CONDA_DEPENDENCIES: "Cython" # ds9"
-        # CONDA_CHANNELS: 'http://ssb.stsci.edu/astroconda'
-
-    matrix:
-
-        # We test Python 2.7 and 3.5 because 2.7 is the supported Python 2
-        # release of Astropy and Python 3.5 is the latest Python 3 release.
-        - PYTHON_VERSION: "2.7"
-          ASTROPY_VERSION: "stable"
-          NUMPY_VERSION: "stable"
-        - PYTHON_VERSION: "3.5"
-          ASTROPY_VERSION: "stable"
-          NUMPY_VERSION: "stable"
-
-matrix:
-    fast_finish: true
-
-platform:
-    - x64
-
-# This apparently works on astropy but not here. How is it possible??
-# os: Visual Studio 2015 Update 2
-
+init:
+  - "ECHO %PYTHON% %PYTHON_VERSION% %PYTHON_ARCH%"
+ 
 install:
-    # - appveyor DownloadFile https://cygwin.com/setup-x86_64.exe -FileName C:\cygwin64\setup-x86_64.exe
-    # - C:\cygwin64\setup-x86_64.exe -qnNdO -R C:/cygwin64 -s http://cygwin.mirror.constant.com -l C:/cygwin64/var/cache/setup
-    - C:\cygwin64\setup-x86_64.exe -qnNdO -R C:/cygwin64 -s http://cygwin.mirror.constant.com -l C:/cygwin64/var/cache/setup -P autoconf -P automake -P bison -P gcc-core -P gcc-g++ -P mingw-runtime -P mingw-binutils -P mingw-gcc-core -P mingw-gcc-g++ -P mingw-pthreads -P mingw-w32api -P libtool -P make -P python -P gettext-devel -P gettext -P intltool -P libiconv -P pkg-config -P git -P wget -P curl
-    - C:\cygwin64\bin\bash -lc true
-    - set PATH=C:\cygwin64\bin;%PATH%
-    - set CC=C:\cygwin64\bin\gcc.exe
-    - which bash
-    - which gcc
-    - ls C:\cygwin64
-    - ls C:\cygwin64\bin
-    - "git clone git://github.com/astropy/ci-helpers.git"
-    - "powershell ci-helpers/appveyor/install-miniconda.ps1"
-    - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
-    - "activate test"
-
-# Not a .NET project, we build the package in the install step instead
-build: false
-
+  - "powershell appveyor\\install.ps1"
+  - "set HOME=%APPVEYOR_BUILD_FOLDER%"
+ 
+build: off
+ 
 test_script:
-    - "%CMD_IN_ENV% python setup.py test"
-      #- CC=C:\cygwin64\bin\gcc python setup.py test
-
-notifications:
-    - provider: Email
-      to:
-          - franz.bergesund@gmail.com
-      on_build_success: false
-      on_build_failure: true
-      on_build_status_changed: true
+  - "%WITH_COMPILER% %PYTHON%/python setup.py test"
+ 
+# after_test:
+#  - "%WITH_COMPILER% %PYTHON%/python setup.py %DISTRIBUTIONS%"
+ 
+# artifacts:
+#  - path: dist\*
