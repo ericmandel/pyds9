@@ -47,6 +47,7 @@ install:
     - "powershell ci-helpers/appveyor/install-miniconda.ps1"
     - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
     - "activate test"
+    - "ls C:\\conda\\envs\\test\\Library\\mingw-w64\\bin"
 
 # Not a .NET project, we build the package in the install step instead
 build: false
