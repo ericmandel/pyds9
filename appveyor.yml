@@ -24,8 +24,9 @@ environment:
         - PYTHON_VERSION: "2.7"
           ASTROPY_VERSION: "stable"
           NUMPY_VERSION: "stable"
-          # CC: i686-w64-mingw32-gcc
-          # AR: i686-w64-mingw32-ar
+          PYTHON_ARCH: "32"
+          CC: i686-w64-mingw32-gcc
+          AR: i686-w64-mingw32-ar
         - PYTHON_VERSION: "3.5"
           ASTROPY_VERSION: "stable"
           NUMPY_VERSION: "stable"
