@@ -16,6 +16,9 @@ from astropy_helpers.distutils_helpers import get_distutils_build_option
 
 libxpa_extension_name = 'pyds9.libxpa'
 
+ulist = platform.uname()
+is_windows = (ulist[0] == 'Windows') or (ulist[0].find('CYGWIN') != -1)
+
 
 @contextmanager
 def cd(newdir):
@@ -43,17 +46,10 @@ def get_extensions():
             cflags = '-m32'
             cfg['extra_compile_args'].append(cflags)
 
-    # cfg['extra_compile_args'].extend([# '--enable-shared',
-    #                                   '--without-tcl',
-    #                                   cflags])
-
-    # import pdb; pdb.set_trace()
-
     if not setup_helpers.use_system_library('libxpa'):
-        if not debug:
+        if not debug and not is_windows:
             # All of these switches are to silence warnings from compiling
             cfg['extra_compile_args'].extend([
-                '-Wno-declaration-after-statement',
                 '-Wno-unused-variable', '-Wno-parentheses',
                 '-Wno-uninitialized', '-Wno-format',
                 '-Wno-strict-prototypes', '-Wno-unused', '-Wno-comments',
@@ -90,8 +86,14 @@ def pre_build_ext_hook(cmd):
     libxpa = [e for e in cmd.extensions if e.name == libxpa_extension_name][0]
     xpa_dir = [i for i in libxpa.include_dirs if 'xpa' in i][0]
 
+    if is_windows:
+        cmd = ['sh', 'configure']
+    else:
+        cmd = [os.path.join('.', 'configure'), ]
+    cmd.append('--without-tcl')
+
     with cd(xpa_dir):
-        sp.check_call([os.path.join('.', 'configure'), '--without-tcl'])
+        sp.check_call(cmd)
 
 
 def post_build_ext_hook(cmd):

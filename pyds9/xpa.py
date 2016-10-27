@@ -10,15 +10,22 @@ import ctypes
 import ctypes.util
 
 
-# look for the shared library in sys.path
+# look for the shared library in the current directory and in sys.path
 def _find_shlib(_libbase):
+    _ulist = platform.uname()
+    _libbase = 'lib' + _libbase
 
-    dir_ = os.path.dirname(__file__)
-    libxpa = glob.glob(os.path.join(dir_, "libxpa*so*"))
-    if libxpa:
-        return libxpa[0]
+    if ((_ulist[0] == 'Windows') or ((_ulist[0]).find('CYGWIN') != -1)):
+        _libname = _libbase + '*dll*'
     else:
-        return None
+        _libname = _libbase + '*so*'
+
+    for _dir in [os.path.dirname(__file__), ] + sys.path:
+        _fname = glob.glob(os.path.join(_dir, _libname))
+        if _fname:
+            return _fname[0]
+    return None
+
 
 _libpath = _find_shlib('xpa')
 if _libpath:
