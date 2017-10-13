@@ -37,9 +37,10 @@ To run::
 	# start up python
 	> python
         ... (startup messages) ...
-	>>> from pyds9 import *
-	>>> print(ds9_targets())  # doctest: +SKIP
-	>>> d = Ds9()
+	>>> import pyds9
+	>>> print(pyds9.ds9_targets())
+    None
+	>>> d = pyds9.DS9()  # doctest: +SKIP
 
 The setup.py install will build and install both the XPA shared library and
 the xpans name server. By default, the code generated for the shared object
