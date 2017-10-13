@@ -23,7 +23,7 @@ env:
         # The following versions are the 'default' for tests, unless
         # overridden underneath. They are defined here in order to save having
         # to repeat them for all configurations.
-        - PYTHON_VERSION=3.5
+        - PYTHON_VERSION=3.6
         - NUMPY_VERSION=stable
         - ASTROPY_VERSION=stable
         - MAIN_CMD='python setup.py'
@@ -56,8 +56,8 @@ matrix:
         - os: osx
           env: SETUP_CMD='test'
 
-        # Do a coverage test in Python 3.5
-        # - python: 3.5
+        # Do a coverage test in Python 3.6
+        # - python: 3.6
         #   env: SETUP_CMD='test --coverage'
 
         # Check for sphinx doc build warnings - we do this first because it
@@ -65,22 +65,20 @@ matrix:
         - env: SETUP_CMD='build_docs -w' PYDS9_NOXPANS=true
 
         # Try older numpy versions
-        - env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.7
-        - env: PYTHON_VERSION=3.3 NUMPY_VERSION=1.8
-        - env: PYTHON_VERSION=3.4 NUMPY_VERSION=1.9
-        - env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.10
+        - env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.10
+        - env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.11
+        - env: PYTHON_VERSION=3.6 NUMPY_VERSION=1.12
 
         # Try numpy pre-release
         - env: NUMPY_VERSION=prerelease
 
         # Try Astropy development and lts version
-        - env: PYTHON_VERSION=2.7 ASTROPY_VERSION=development
-        - env: PYTHON_VERSION=3.5 ASTROPY_VERSION=development
+        - env: PYTHON_VERSION=3.6 ASTROPY_VERSION=development
         - env: PYTHON_VERSION=2.7 ASTROPY_VERSION=lts NUMPY_VERSION=1.10
-        - env: PYTHON_VERSION=3.5 ASTROPY_VERSION=lts NUMPY_VERSION=1.10
+        - env: PYTHON_VERSION=3.6 ASTROPY_VERSION=lts NUMPY_VERSION=1.10
 
         # Try without cython
-        - env: PYTHON_VERSION=3.5 CONDA_DEPENDENCIES='numpy ds9' SETUP_CMD='egg_info'
+        - env: PYTHON_VERSION=3.6 CONDA_DEPENDENCIES='numpy ds9' SETUP_CMD='egg_info'
 
 install:
 
@@ -118,6 +116,7 @@ after_success:
 
 notifications:
   email:
+    # NOTE: Pull Request builds do not trigger email notifications
     recipients:
       - franz.bergesund@gmail.com
     on_success: change
