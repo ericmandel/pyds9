@@ -34,13 +34,12 @@ or to install in a user-specified directory::
 
 To run::
 
-	# start up python
-	> python
+	# start up ipython
+	> ipython
         ... (startup messages) ...
-	>>> import pyds9  # doctest: +SKIP
-	>>> print(pyds9.ds9_targets())  # doctest: +SKIP
-    None
-	>>> d = pyds9.DS9()  # doctest: +SKIP
+	In [1]: import pyds9
+	In [2]: print(pyds9.ds9_targets())
+	In [3]: d = pyds9.DS9()
 
 The setup.py install will build and install both the XPA shared library and
 the xpans name server. By default, the code generated for the shared object
