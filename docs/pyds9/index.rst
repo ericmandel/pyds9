@@ -38,7 +38,7 @@ To run::
 	> python
         ... (startup messages) ...
 	>>> from pyds9 import *
-	>>> print ds9_targets()
+	>>> print(ds9_targets())  # doctest: +SKIP
 	>>> d = Ds9()
 
 The setup.py install will build and install both the XPA shared library and
