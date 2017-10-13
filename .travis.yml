@@ -74,8 +74,8 @@ matrix:
 
         # Try Astropy development and lts version
         - env: PYTHON_VERSION=3.6 ASTROPY_VERSION=development
-        - env: PYTHON_VERSION=2.7 ASTROPY_VERSION=lts NUMPY_VERSION=1.10
-        - env: PYTHON_VERSION=3.6 ASTROPY_VERSION=lts NUMPY_VERSION=1.10
+        - env: PYTHON_VERSION=2.7 ASTROPY_VERSION=lts NUMPY_VERSION=1.12 CONDA_CHANNELS='astropy-ci-extras'
+        - env: PYTHON_VERSION=3.6 ASTROPY_VERSION=lts NUMPY_VERSION=1.12 CONDA_CHANNELS='astropy-ci-extras'
 
         # Try without cython
         - env: PYTHON_VERSION=3.6 CONDA_DEPENDENCIES='numpy ds9' SETUP_CMD='egg_info'
