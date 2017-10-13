@@ -37,8 +37,8 @@ To run::
 	# start up python
 	> python
         ... (startup messages) ...
-	>>> import pyds9
-	>>> print(pyds9.ds9_targets())
+	>>> import pyds9  # doctest: +SKIP
+	>>> print(pyds9.ds9_targets())  # doctest: +SKIP
     None
 	>>> d = pyds9.DS9()  # doctest: +SKIP
 

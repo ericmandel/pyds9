@@ -321,7 +321,7 @@ def ds9_openlist(target='DS9:*', n=1024):
     returns a list of ds9 objects. For example, assuming 3 instances of ds9
     are running with names foo1, foo2, foo3:
 
-    >>> ds9list = ds9_openlist("foo*")
+    >>> ds9list = ds9_openlist("foo*")  # doctest: +SKIP
     >>> for d in ds9list:  # doctest: +SKIP
     ...     print d.target, d.id
     ...
