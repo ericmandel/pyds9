@@ -34,6 +34,9 @@ __version__ = '1.8.1'
 
 __all__ = ['DS9', 'ds9', 'ds9_openlist', 'ds9_targets', 'ds9_xpans']
 
+# skip all the doctests in this module
+__doctest_skip__ = ['*']
+
 # try to be a little bit neat with global parameters
 ds9Globals = {}
 
@@ -96,6 +99,7 @@ def get_xpans_ds9():
         warnings.warn(ds9_warning)
 
     return xpans, ds9
+
 
 ds9Globals["progs"] = get_xpans_ds9()
 
@@ -300,8 +304,8 @@ def ds9_targets(target='DS9:*'):
     To see all actively running ds9 instances for a given target, use the
     ds9_targets() routine::
 
-      >>> ds9_targets()
-      ['DS9:foo1 838e29d4:42873', 'DS9:foo2 838e29d4:35739']
+        >>> ds9_targets()
+        ['DS9:foo1 838e29d4:42873', 'DS9:foo2 838e29d4:35739']
 
     You then can pass one of the ids (or names) to the DS9() constructor.
     """
@@ -329,7 +333,6 @@ def ds9_openlist(target='DS9:*', n=1024):
         DS9:foo2 a000104:56254
         DS9:foo3 a000104:56256
         >>> ds9list[1].set("file test.fits")
-
     """
     tlist = xpa.xpaaccess(string_to_bytes(target), None, n)
     if not tlist:
@@ -399,21 +402,21 @@ class DS9(object):
         be shown a list of the actively running programs and will be asked to
         use one of them to specify which ds9 is wanted::
 
-          >>> DS9()
-          More than one ds9 is running for target DS9:*:
-          DS9:foo1 838e29d4:42873
-          DS9:foo2 838e29d4:35739
-          Use a specific name or id to construct a ds9 object, e.g.:
-          d = ds9('foo1')
-          d = ds9('DS9:foo1')
-          d = ds9('838e29d4:42873')
-          The 'ip:port' id (3rd example) will always be unique.
-          ...
-          ValueError: too many ds9 instances running for target: DS9:*
+            >>> DS9()
+            More than one ds9 is running for target DS9:*:
+            DS9:foo1 838e29d4:42873
+            DS9:foo2 838e29d4:35739
+            Use a specific name or id to construct a ds9 object, e.g.:
+            d = ds9('foo1')
+            d = ds9('DS9:foo1')
+            d = ds9('838e29d4:42873')
+            The 'ip:port' id (3rd example) will always be unique.
+            ...
+            ValueError: too many ds9 instances running for target: DS9:*
 
         You then can choose one of these to pass to the contructor::
 
-           d = DS9('838e29d4:35739')
+            d = DS9('838e29d4:35739')
 
         Of course, you can always specify a name for this instance of ds9. A
         unique target name is especially appropriate if you want to start up
@@ -510,14 +513,14 @@ class DS9(object):
         Once a DS9 object has been initialized, use 'get' to retrieve data from
         ds9 by specifying the standard xpa paramlist::
 
-          >>> d.get("file")
-          '/home/eric/python/ds9/test.fits'
-          >>> d.get("fits height")
-          '15'
-          >>> d.get("fits width")
-          '15'
-          >>> d.get("fits bitpix")
-          '32'
+            >>> d.get("file")
+            '/home/eric/python/ds9/test.fits'
+            >>> d.get("fits height")
+            '15'
+            >>> d.get("fits width")
+            '1
+            >>> d.get("fits bitpix")
+            '32'
 
         Note that all access points return data as python strings.
         """
@@ -544,8 +547,8 @@ class DS9(object):
         Once a DS9 object has been initialized, use 'set' to send data and
         commands to ds9::
 
-          >>> d.set("file /home/eric/data/casa.fits")
-          1
+            >>> d.set("file /home/eric/data/casa.fits")
+            1
 
         A return value of 1 indicates that ds9 was contacted successfully,
         while a return value of 0 indicates a failure.
@@ -554,17 +557,17 @@ class DS9(object):
         in the argument list. The data buffer must either be a string, a
         numpy.ndarray,  or an array.array::
 
-          >>> d.set("array [xdim=1024 ydim=1024 bitpix=-32]", arr)
+            >>> d.set("array [xdim=1024 ydim=1024 bitpix=-32]", arr)
 
         Sending both a paramlist and data is the canonical way to send a region
         to ds9::
 
-          >>> d.set('regions', 'fk5; circle(345.29,58.87,212.58")');
-          1
+            >>> d.set('regions', 'fk5; circle(345.29,58.87,212.58")')
+            1
 
-        This is equivalent to the Unix xpaset command:
+        This is equivalent to the Unix xpaset command::
 
-          echo 'fk5; circle(345.29,58.87,212.58")' | xpaset ds9 regions
+            echo 'fk5; circle(345.29,58.87,212.58")' | xpaset ds9 regions
 
         Indeed, if you are having problems with ds9.set() or ds9.get(), it
         often is helpful to try the equivalent command using the Unix xpaset
@@ -615,14 +618,14 @@ class DS9(object):
             To read FITS data or a raw array from ds9 into pyfits, use the
             'get_pyfits' method. It takes no args and returns an hdu list::
 
-              >>> hdul = d.get_pyfits()
-              >>> hdul.info()
-              Filename: StringIO
-              No.    Name         Type      Cards   Dimensions   Format
-              0    PRIMARY     PrimaryHDU      24  (1024, 1024)  float32
-              >>> data = hdul[0].data
-              >>> data.shape
-              (1024, 1024)
+                >>> hdul = d.get_pyfits()
+                >>> hdul.info()
+                Filename: StringIO
+                No.    Name         Type      Cards   Dimensions   Format
+                0    PRIMARY     PrimaryHDU      24  (1024, 1024)  float32
+                >>> data = hdul[0].data
+                >>> data.shape
+                (1024, 1024)
 
             """
             self._selftest()
@@ -640,8 +643,8 @@ class DS9(object):
             making a new one), you can display it in ds9 using the 'set_pyfits'
             method, which takes the hdulist as its sole argument::
 
-              >>> d.set_pyfits(nhdul)
-              1
+                >>> d.set_pyfits(nhdul)
+                1
 
             A return value of 1 indicates that ds9 was contacted successfully,
             while a return value of 0 indicates a failure.
@@ -683,15 +686,15 @@ class DS9(object):
             the 'get_arr2np' method. It takes no arguments and returns the
             np array::
 
-              >>> d.get("file")
-              '/home/eric/data/casa.fits[EVENTS]'
-              >>> arr = d.get_arr2np()
-              >>> arr.shape
-              (1024, 1024)
-              >>> arr.dtype
-              dtype('float32')
-              >>> arr.max()
-              51.0
+                >>> d.get("file")
+                '/home/eric/data/casa.fits[EVENTS]'
+                >>> arr = d.get_arr2np()
+                >>> arr.shape
+                (1024, 1024)
+                >>> arr.dtype
+                dtype('float32')
+                >>> arr.max()
+                51.0
 
             """
             self._selftest()
@@ -718,8 +721,8 @@ class DS9(object):
             a new one), you can display it in ds9 using the 'set_np2arr'
             method, which takes the array as its first argument::
 
-              >>> d.set_np2arr(arr)
-              1
+                >>> d.set_np2arr(arr)
+                1
 
             A return value of 1 indicates that ds9 was contacted successfully,
             while a return value of 0 indicates a failure.
@@ -729,11 +732,11 @@ class DS9(object):
             important in the case where the array has datatype np.uint64,
             which is not recognized by ds9::
 
-              >>> d.set_np2arr(arru64)
-              ...
-              ValueError: uint64 is unsupported by DS9 (or FITS)
-              >>> d.set_np2arr(arru64,dtype=np.float64)
-              1
+                >>> d.set_np2arr(arru64)
+                ...
+                ValueError: uint64 is unsupported by DS9 (or FITS)
+                >>> d.set_np2arr(arru64,dtype=np.float64)
+                1
 
             Also note that np.int8 is sent to ds9 as int16 data, np.uint32 is
             sent as int64 data, and np.float16 is sent as float32 data.
@@ -801,6 +804,7 @@ class ds9(DS9):
 
         super(ds9, self).__init__(*args, **kwargs)
 
+
 # start xpans, if necessary
 # it seems that this must be done at import time, so that we can sense the
 # case where xpa is not installed, and ds9 is started before python
@@ -814,7 +818,7 @@ def test():
     # start ds9 if necessary
     tries = 0
     print("looking for our 'pytest' ds9 ...")
-    while ds9_targets("pytest") == None:
+    while ds9_targets("pytest") is None:
         if tries == 0:
             print("starting ds9 ...")
             subprocess.Popen(ds9Globals["progs"][1] + ['-title', 'pytest'])
