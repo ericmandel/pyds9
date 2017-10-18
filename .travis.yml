@@ -80,6 +80,9 @@ matrix:
         # Try without cython
         - env: PYTHON_VERSION=3.6 CONDA_DEPENDENCIES='numpy ds9' SETUP_CMD='egg_info'
 
+        # Try with sphinx
+        - env: PYTHON_VERSION=3.6 CONDA_DEPENDENCIES='sphinx' SETUP_CMD='egg_info'
+
 install:
 
     # We now use the ci-helpers package to set up our testing environment.
