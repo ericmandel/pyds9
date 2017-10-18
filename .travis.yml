@@ -84,7 +84,7 @@ matrix:
                SETUP_CMD='egg_info'
 
         # Try with sphinx
-        - env: PYTHON_VERSION=3.6 CONDA_DEPENDENCIES='sphinx'
+        # - env: PYTHON_VERSION=3.6 CONDA_DEPENDENCIES='sphinx'
 
 install:
 
