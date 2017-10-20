@@ -8,15 +8,20 @@ programs such as ds9. The ``pyds9`` module uses a Python interface to XPA to
 communicate with ds9. It supports communication with all of ds9's XPA access
 points.
 
-pyds9 is available from GitHub at:
-
-https://github.com/ericmandel/pyds9
-
-
 The easiest way to install ``pyds9`` is:
 
-    # install from the repository
+    pip install --upgrade [--user] pyds9
+
+To install the development version from
+[``ericmandel/pyds9``](https://github.com/ericmandel/pyds9), the following
+command can be used.
+
     > pip install [--user] git+https://github.com/ericmandel/pyds9.git#egg=pyds9
+
+WARNING: due to some interaction between
+[``astropy_helper``](https://github.com/astropy/astropy-helpers) and
+[``sphinx``](http://www.sphinx-doc.org), the command might fail with a
+``RecursioError`` if sphinx>=1.6 is present.
 
 Alternatively, you can clone the git repository or download and unpack the [zip
 file](https://github.com/ericmandel/pyds9/archive/master.zip). Then ``cd`` into

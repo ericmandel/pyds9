@@ -74,11 +74,17 @@ matrix:
 
         # Try Astropy development and lts version
         - env: PYTHON_VERSION=3.6 ASTROPY_VERSION=development
-        - env: PYTHON_VERSION=2.7 ASTROPY_VERSION=lts NUMPY_VERSION=1.12 CONDA_CHANNELS='astropy-ci-extras'
-        - env: PYTHON_VERSION=3.6 ASTROPY_VERSION=lts NUMPY_VERSION=1.12 CONDA_CHANNELS='astropy-ci-extras'
+        - env: PYTHON_VERSION=2.7 ASTROPY_VERSION=lts NUMPY_VERSION=1.12
+               CONDA_CHANNELS='astropy-ci-extras'
+        - env: PYTHON_VERSION=3.6 ASTROPY_VERSION=lts NUMPY_VERSION=1.12
+               CONDA_CHANNELS='astropy-ci-extras'
 
         # Try without cython
-        - env: PYTHON_VERSION=3.6 CONDA_DEPENDENCIES='numpy ds9' SETUP_CMD='egg_info'
+        - env: PYTHON_VERSION=3.6 CONDA_DEPENDENCIES='numpy ds9'
+               SETUP_CMD='egg_info'
+
+        # Try with sphinx
+        # - env: PYTHON_VERSION=3.6 CONDA_DEPENDENCIES='sphinx'
 
 install:
 
@@ -94,7 +100,7 @@ install:
     # commands in the install: section below.
 
     - git clone git://github.com/astropy/ci-helpers.git
-    - source ci-helpers/travis/setup_conda_$TRAVIS_OS_NAME.sh
+    - source ci-helpers/travis/setup_conda.sh
 
     # As described above, using ci-helpers, you should be able to set up an
     # environment with dependencies installed using conda and pip, but in some
