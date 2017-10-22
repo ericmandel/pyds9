@@ -178,7 +178,6 @@ def _np2bp(dtype):
     int
         FITS bitpix type
 
-
     Raises
     ------
     ValueError
@@ -766,8 +765,8 @@ class DS9(object):
         dtype: data type, optional
             convert array to ``dtype`` before sending
 
-        Parameters
-        ----------
+        Returns
+        -------
         int :
             1 for success, 0 for failure
 
