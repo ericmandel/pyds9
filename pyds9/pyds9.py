@@ -27,6 +27,7 @@ from . import xpa
 
 from astropy.extern import six
 from astropy.extern.six import BytesIO
+import numpy
 
 
 # pyds9 version
@@ -128,63 +129,84 @@ except:
     except:
         ds9Globals["pyfits"] = 0
 
-# load numpy, if available
-try:
-    import numpy
-    ds9Globals["numpy"] = 1
-except:
-    ds9Globals["numpy"] = 0
 
 # numpy-dependent routines
-if ds9Globals["numpy"]:
-    def _bp2np(bitpix):
-        """
-        Convert FITS bitpix to numpy datatype
-        """
-        if bitpix == 8:
-            return numpy.uint8
-        elif bitpix == 16:
-            return numpy.int16
-        elif bitpix == 32:
-            return numpy.int32
-        elif bitpix == 64:
-            return numpy.int64
-        elif bitpix == -32:
-            return numpy.float32
-        elif bitpix == -64:
-            return numpy.float64
-        elif bitpix == -16:
-            return numpy.uint16
-        else:
-            raise ValueError('unsupported bitpix: %d' % bitpix)
+def _bp2np(bitpix):
+    """Convert FITS bitpix to numpy datatype
 
-    def _np2bp(dtype):
-        """
-        Convert numpy datatype to FITS bitpix
-        """
-        if dtype.kind == 'u':
-            # unsigned ints
-            if dtype.itemsize == 1:
-                return 8
-            if dtype.itemsize == 2:
-                # this is not in the FITS standard?
-                return -16
-        elif dtype.kind == 'i':
-            # integers
-            if dtype.itemsize == 2:
-                return 16
-            elif dtype.itemsize == 4:
-                return 32
-            elif dtype.itemsize == 8:
-                return 64
-        elif dtype.kind == 'f':
-            # floating point
-            if dtype.itemsize == 4:
-                return -32
-            elif dtype.itemsize == 8:
-                return -64
+    Parameters
+    ----------
+    bitpix : int
+        FITS bitpix type
 
-        raise ValueError('unsupported dtype: %s' % dtype)
+    Returns
+    -------
+    numpy type
+
+    Raises
+    ------
+    ValueError
+        for unsupported bitpix
+    """
+    if bitpix == 8:
+        return numpy.uint8
+    elif bitpix == 16:
+        return numpy.int16
+    elif bitpix == 32:
+        return numpy.int32
+    elif bitpix == 64:
+        return numpy.int64
+    elif bitpix == -32:
+        return numpy.float32
+    elif bitpix == -64:
+        return numpy.float64
+    elif bitpix == -16:
+        return numpy.uint16
+    else:
+        raise ValueError('unsupported bitpix: %d' % bitpix)
+
+
+def _np2bp(dtype):
+    """Convert numpy datatype to FITS bitpix
+
+    Parameters
+    ----------
+    dtype : numpy type
+
+    Returns
+    -------
+    int
+        FITS bitpix type
+
+
+    Raises
+    ------
+    ValueError
+        for unsupported dtypes
+    """
+    if dtype.kind == 'u':
+        # unsigned ints
+        if dtype.itemsize == 1:
+            return 8
+        if dtype.itemsize == 2:
+            # this is not in the FITS standard?
+            return -16
+    elif dtype.kind == 'i':
+        # integers
+        if dtype.itemsize == 2:
+            return 16
+        elif dtype.itemsize == 4:
+            return 32
+        elif dtype.itemsize == 8:
+            return 64
+    elif dtype.kind == 'f':
+        # floating point
+        if dtype.itemsize == 4:
+            return -32
+        elif dtype.itemsize == 8:
+            return -64
+
+    raise ValueError('unsupported dtype: %s' % dtype)
 
 
 def string_to_bytes(string):
@@ -575,7 +597,7 @@ class DS9(object):
 
         """
         self._selftest()
-        if ds9Globals["numpy"] and type(buf) == numpy.ndarray:
+        if type(buf) == numpy.ndarray:
                 s = buf.tostring()
         elif type(buf) == array.array:
             try:  # Python >= 3.2
@@ -677,117 +699,117 @@ class DS9(object):
             """
             raise ValueError('set_pyfits not defined (pyfits not found)')
 
-    if ds9Globals["numpy"]:
-        def get_arr2np(self):
-            """
-            :rtype: numpy array
+    def get_arr2np(self):
+        """Convert a FITS file or an array from ds9 into a numpy array.
 
-            To read a FITS file or an array from ds9 into a numpy array, use
-            the 'get_arr2np' method. It takes no arguments and returns the
-            np array::
+        Examples
+        --------
 
-                >>> d.get("file")
-                '/home/eric/data/casa.fits[EVENTS]'
-                >>> arr = d.get_arr2np()
-                >>> arr.shape
-                (1024, 1024)
-                >>> arr.dtype
-                dtype('float32')
-                >>> arr.max()
-                51.0
+        >>> d.get("file")
+        '/home/eric/data/casa.fits[EVENTS]'
+        >>> arr = d.get_arr2np()
+        >>> arr.shape
+        (1024, 1024)
+        >>> arr.dtype
+        dtype('float32')
+        >>> arr.max()
+        51.0
 
-            """
-            self._selftest()
-            w = int(self.get('fits width'))
-            h = int(self.get('fits height'))
-            d = int(self.get('fits depth'))
-            bp = int(self.get('fits bitpix'))
-            s = self.get('array')
-            if d > 1:
-                arr = numpy.fromstring(s, dtype=_bp2np(bp)).reshape((d, h, w))
+        Returns
+        -------
+        numpy array
+
+        """
+        self._selftest()
+        w = int(self.get('fits width'))
+        h = int(self.get('fits height'))
+        d = int(self.get('fits depth'))
+        bp = int(self.get('fits bitpix'))
+        s = self.get('array')
+        if d > 1:
+            arr = numpy.fromstring(s, dtype=_bp2np(bp)).reshape((d, h, w))
+        else:
+            arr = numpy.fromstring(s, dtype=_bp2np(bp)).reshape((h, w))
+        # if sys.byteorder != 'big': arr.byteswap(True)
+        return arr
+
+    def set_np2arr(self, arr, dtype=None):
+        """After manipulating or otherwise modifying a numpy array (or making a
+        new one), you can display it in ds9 using this method, which takes the
+        array as its first argument::
+
+            >>> d.set_np2arr(arr)
+            1
+
+        A return value of 1 indicates that ds9 was contacted successfully,
+        while a return value of 0 indicates a failure.
+
+        An optional second argument specifies a datatype into which the
+        array will be converted before being sent to ds9. This is
+        important in the case where the array has datatype np.uint64,
+        which is not recognized by ds9::
+
+            >>> d.set_np2arr(arru64)
+            ...
+            ValueError: uint64 is unsupported by DS9 (or FITS)
+            >>> d.set_np2arr(arru64,dtype=np.float64)
+            1
+
+        Also note that ``np.int8`` is sent to ds9 as ``int16`` data,
+        ``np.uint32`` is sent as ``int64`` data, and ``np.float16`` is sent as
+        ``float32`` data.
+
+        Parameters
+        ----------
+        arr : numpy array
+            array to send to ds9
+        dtype: data type, optional
+            convert array to ``dtype`` before sending
+
+        Parameters
+        ----------
+        int :
+            1 for success, 0 for failure
+
+        Raises
+        ------
+        ValueError
+            if the input is not a numpy array
+        """
+        self._selftest()
+        if type(arr) != numpy.ndarray:
+            raise ValueError('requires numpy.ndarray as input')
+        if dtype and dtype != arr.dtype:
+            narr = arr.astype(dtype)
+        else:
+            if arr.dtype == numpy.int8:
+                narr = arr.astype(numpy.int16)
+            elif arr.dtype == numpy.uint32:
+                narr = arr.astype(numpy.int64)
+            elif hasattr(numpy, "float16") and arr.dtype == numpy.float16:
+                narr = arr.astype(numpy.float32)
             else:
-                arr = numpy.fromstring(s, dtype=_bp2np(bp)).reshape((h, w))
-            # if sys.byteorder != 'big': arr.byteswap(True)
-            return arr
+                narr = arr
+        if not narr.flags['C_CONTIGUOUS']:
+            narr = numpy.ascontiguousarray(narr)
+        bp = _np2bp(narr.dtype)
+        buf = narr.tostring('C')
+        blen = len(buf)
+        (w, h) = narr.shape
 
-        def set_np2arr(self, arr, dtype=None):
-            """
-            :param arr: numpy array
-            :param dtype: data type into which to convert array before sending
+        # note that this needs the "endian=" part because sometimes it's
+        # left out completely
+        endianness = ''
+        if narr.dtype.byteorder == '=':
+            endianness = ',endian=' + sys.byteorder
+        elif narr.dtype.byteorder == '<':
+            endianness = ',endian=little'
+        elif narr.dtype.byteorder == '>':
+            endianness = ',endian=big'
 
-            :rtype: 1 for success, 0 for failure
-
-            After manipulating or otherwise modifying a numpy array (or making
-            a new one), you can display it in ds9 using the 'set_np2arr'
-            method, which takes the array as its first argument::
-
-                >>> d.set_np2arr(arr)
-                1
-
-            A return value of 1 indicates that ds9 was contacted successfully,
-            while a return value of 0 indicates a failure.
-
-            An optional second argument specifies a datatype into which the
-            array will be converted before being sent to ds9. This is
-            important in the case where the array has datatype np.uint64,
-            which is not recognized by ds9::
-
-                >>> d.set_np2arr(arru64)
-                ...
-                ValueError: uint64 is unsupported by DS9 (or FITS)
-                >>> d.set_np2arr(arru64,dtype=np.float64)
-                1
-
-            Also note that np.int8 is sent to ds9 as int16 data, np.uint32 is
-            sent as int64 data, and np.float16 is sent as float32 data.
-            """
-            self._selftest()
-            if type(arr) != numpy.ndarray:
-                raise ValueError('requires numpy.ndarray as input')
-            if dtype and dtype != arr.dtype:
-                narr = arr.astype(dtype)
-            else:
-                if arr.dtype == numpy.int8:
-                    narr = arr.astype(numpy.int16)
-                elif arr.dtype == numpy.uint32:
-                    narr = arr.astype(numpy.int64)
-                elif hasattr(numpy, "float16") and arr.dtype == numpy.float16:
-                    narr = arr.astype(numpy.float32)
-                else:
-                    narr = arr
-            if not narr.flags['C_CONTIGUOUS']:
-                narr = numpy.ascontiguousarray(narr)
-            bp = _np2bp(narr.dtype)
-            buf = narr.tostring('C')
-            blen = len(buf)
-            (w, h) = narr.shape
-
-            # note that this needs the "endian=" part because sometimes it's
-            # left out completely
-            endianness = ''
-            if narr.dtype.byteorder == '=':
-                endianness = ',endian=' + sys.byteorder
-            elif narr.dtype.byteorder == '<':
-                endianness = ',endian=little'
-            elif narr.dtype.byteorder == '>':
-                endianness = ',endian=big'
-
-            paramlist = 'array [xdim={0},ydim={1},bitpix={2}{3}]'
-            return self.set(paramlist.format(h, w, bp, endianness), buf,
-                            blen+1)
-
-    else:
-        def get_arr2np(self):
-            """
-            This method is not defined because numpy in not installed.
-            """
-            raise ValueError('get_arr2np not defined (numpy not found)')
-
-        def set_np2arr(self):
-            """
-            This method is not defined because numpy in not installed.
-            """
-            raise ValueError('set_np2arr not defined (numpy not found)')
+        paramlist = 'array [xdim={0},ydim={1},bitpix={2}{3}]'
+        return self.set(paramlist.format(h, w, bp, endianness), buf,
+                        blen+1)
 
 
 class ds9(DS9):
