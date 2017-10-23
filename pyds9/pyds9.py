@@ -120,12 +120,12 @@ ds9Globals['bin_cmd'] = ["array",
 try:
     import pyfits
     if pyfits.__version__ >= '2.2':
-        ds9Globals["pyfits"] = 1
+        ds9Globals["pyfits"] = True
     else:
         warnings.warn('Pytest<2.2 is not supported')
-        ds9Globals["pyfits"] = 0
+        ds9Globals["pyfits"] = False
 except ImportError:
-    ds9Globals["pyfits"] = 0
+    ds9Globals["pyfits"] = False
 
 
 # numpy-dependent routines
@@ -661,7 +661,7 @@ class DS9(object):
         Examples
         --------
 
-        >>> d.set_pyfits(nhdul)
+        >>> d.set_fits(nhdul)
         1
 
         Parameters
@@ -690,72 +690,82 @@ class DS9(object):
             got = self.set('fits', newfits, len(newfits))
             return got
 
-    if ds9Globals["pyfits"]:
-        def get_pyfits(self):
-            """
-            :rtype: pyfits hdulist
+    def get_pyfits(self):
+        """Retrieve data from ds9 as an pyfits FITS.
 
-            To read FITS data or a raw array from ds9 into pyfits, use the
-            'get_pyfits' method. It takes no args and returns an hdu list::
+        Examples
+        --------
 
-                >>> hdul = d.get_pyfits()
-                >>> hdul.info()
-                Filename: StringIO
-                No.    Name         Type      Cards   Dimensions   Format
-                0    PRIMARY     PrimaryHDU      24  (1024, 1024)  float32
-                >>> data = hdul[0].data
-                >>> data.shape
-                (1024, 1024)
+        >>> hdul = d.get_pyfits()
+        >>> hdul.info()
+        Filename: StringIO
+        No.    Name         Type      Cards   Dimensions   Format
+        0    PRIMARY     PrimaryHDU      24  (1024, 1024)  float32
+        >>> data = hdul[0].data
+        >>> data.shape
+        (1024, 1024)
 
-            """
-            self._selftest()
-            imgData = self.get('fits')
-            imgString = BytesIO(string_to_bytes(imgData))
-            return pyfits.open(imgString)
+        Returns
+        -------
+        :class:`pyfits.HDUList`
+            FITS object
 
-        def set_pyfits(self, hdul):
-            """
-            :param hdul: pyfits hdulist
+        Raises
+        ------
+        AttributeError
+            if pyfits is not available on the system
+        """
+        if not ds9Globals["pyfits"]:
+            raise AttributeError("'DS9' object has not attribute"
+                                 " 'get_pyfits'. The method is available only"
+                                 " if the package 'pyfits' is imported and"
+                                 " it's version >=2.2")
+        self._selftest()
+        imgData = self.get('fits')
+        imgString = BytesIO(string_to_bytes(imgData))
+        return pyfits.open(imgString)
 
-            :rtype: 1 for success, 0 for failure
+    def set_pyfits(self, hdul):
+        """Display a pyfits FITS in ds9.
 
-            After manipulating or otherwise modifying a pyfits hdulist (or
-            making a new one), you can display it in ds9 using the 'set_pyfits'
-            method, which takes the hdulist as its sole argument::
+        Examples
+        --------
 
-                >>> d.set_pyfits(nhdul)
-                1
+        >>> d.set_pyfits(nhdul)
+        1
 
-            A return value of 1 indicates that ds9 was contacted successfully,
-            while a return value of 0 indicates a failure.
-            """
-            self._selftest()
-            if not ds9Globals["pyfits"]:
-                raise ValueError('set_pyfits not defined (pyfits not found)')
-            if type(hdul) != pyfits.HDUList:
-                if ds9Globals["pyfits"] == 1:
-                    raise ValueError('requires pyfits.HDUList as input')
-                else:
-                    raise ValueError('requires astropy.HDUList as input')
-            # for python2 BytesIO and StringIO are the same
-            with contextlib.closing(BytesIO()) as newFitsFile:
-                hdul.writeto(newFitsFile)
-                newfits = newFitsFile.getvalue()
-                got = self.set('fits', newfits, len(newfits))
-                return got
+        Parameters
+        ----------
+        hdul : :class:`pyfits.HDUList`
+            FITS object to display
 
-    else:
-        def get_pyfits(self):
-            """
-            This method is not defined because pyfits in not installed.
-            """
-            raise ValueError('get_pyfits not defined (pyfits not found)')
+        Returns
+        -------
+        int
+            1 indicates that ds9 was contacted successfully, while a return
+            value of 0 indicates a failure.
 
-        def set_pyfits(self):
-            """
-            This method is not defined because pyfits in not installed.
-            """
-            raise ValueError('set_pyfits not defined (pyfits not found)')
+        Raises
+        ------
+        AttributeError
+            if pyfits is not available on the system
+        ValueError
+            if the input is not a pyfits HDUList
+        """
+        if not ds9Globals["pyfits"]:
+            raise AttributeError("'DS9' object has not attribute"
+                                 " 'set_pyfits'. The method is available only"
+                                 " if the package 'pyfits' is imported and"
+                                 " it's version >=2.2")
+        self._selftest()
+        if not isinstance(hdul, pyfits.HDUList):
+            raise ValueError('The input must be a pyfits HDUList')
+        # for python2 BytesIO and StringIO are the same
+        with contextlib.closing(BytesIO()) as newFitsFile:
+            hdul.writeto(newFitsFile)
+            newfits = newFitsFile.getvalue()
+            got = self.set('fits', newfits, len(newfits))
+            return got
 
     def get_arr2np(self):
         """Convert a FITS file or an array from ds9 into a numpy array.
