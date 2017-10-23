@@ -383,12 +383,12 @@ class DS9(object):
     In addition, a number of special methods are implemented to facilitate data
     access to/from python objects:
 
-    - get_arr2np: retrieve a FITS image or an array into a numpy array
-    - set_np2arr: send a numpy array to ds9 for display
-    - get_fits: retrieve a FITS image into an astropy  hdu list
-    - set_fits: send an astropy hdu list to ds9 for display
-    - get_pyfits: retrieve a FITS image into a pyfits hdu list
-    - set_pyfits: send a pyfits hdu list to ds9 for display
+    - :meth:`get_arr2np`: retrieve a FITS image or an array into a numpy array
+    - :meth:`set_np2arr`: send a numpy array to ds9 for display
+    - :meth:`get_fits`: retrieve a FITS image into an astropy  hdu list
+    - :meth:`set_fits`: send an astropy hdu list to ds9 for display
+    - :meth:`get_pyfits`: retrieve a FITS image into a pyfits hdu list
+    - :meth:`set_pyfits`: send a pyfits hdu list to ds9 for display
     """
 
     # access points that do not get trailing cr stripped from them
@@ -633,8 +633,8 @@ class DS9(object):
     def get_fits(self):
         """Retrieve data from ds9 as an astropy FITS.
 
-        Example
-        -------
+        Examples
+        --------
 
         >>> hdul = d.get_fits()
         >>> hdul.info()
@@ -647,7 +647,7 @@ class DS9(object):
 
         Returns
         -------
-        :class:`astropy.io.fits.hdu.hdulist.HDUList`
+        :class:`astropy.io.fits.HDUList`
             FITS object
         """
         self._selftest()
@@ -658,15 +658,15 @@ class DS9(object):
     def set_fits(self, hdul):
         """Display an astropy FITS in ds9.
 
-        Example
-        -------
+        Examples
+        --------
 
         >>> d.set_pyfits(nhdul)
         1
 
         Parameters
         ----------
-        :class:`astropy.io.fits.hdu.hdulist.HDUList`
+        hdul : :class:`astropy.io.fits.HDUList`
             FITS object to display
 
         Returns
@@ -681,7 +681,7 @@ class DS9(object):
             if the input is not an astropy HDUList
         """
         self._selftest()
-        if isinstance(hdul, fits.HDUList):
+        if not isinstance(hdul, fits.HDUList):
             raise ValueError('The input must be an astropy HDUList')
         # for python2 BytesIO and StringIO are the same
         with contextlib.closing(BytesIO()) as newFitsFile:
