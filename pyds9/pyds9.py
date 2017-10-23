@@ -27,6 +27,7 @@ from . import xpa
 
 from astropy.extern import six
 from astropy.extern.six import BytesIO
+from astropy.io import fits
 import numpy
 
 
@@ -117,17 +118,14 @@ ds9Globals['bin_cmd'] = ["array",
 
 # load pyfits, if available
 try:
-    from astropy.io import fits as pyfits
-    ds9Globals["pyfits"] = 1
-except:
-    try:
-        import pyfits
-        if pyfits.__version__ >= '2.2':
-            ds9Globals["pyfits"] = 2
-        else:
-            ds9Globals["pyfits"] = 0
-    except:
+    import pyfits
+    if pyfits.__version__ >= '2.2':
+        ds9Globals["pyfits"] = 1
+    else:
+        warnings.warn('Pytest<2.2 is not supported')
         ds9Globals["pyfits"] = 0
+except ImportError:
+    ds9Globals["pyfits"] = 0
 
 
 # numpy-dependent routines
@@ -387,9 +385,10 @@ class DS9(object):
 
     - get_arr2np: retrieve a FITS image or an array into a numpy array
     - set_np2arr: send a numpy array to ds9 for display
-    - get_pyfits: retrieve a FITS image into a pyfits (or astropy) hdu list
-    - set_pyfits: send a pyfits (or astropy) hdu list to ds9 for display
-
+    - get_fits: retrieve a FITS image into an astropy  hdu list
+    - set_fits: send an astropy hdu list to ds9 for display
+    - get_pyfits: retrieve a FITS image into a pyfits hdu list
+    - set_pyfits: send a pyfits hdu list to ds9 for display
     """
 
     # access points that do not get trailing cr stripped from them
@@ -630,6 +629,66 @@ class DS9(object):
         self._selftest()
         x = xpa.xpaaccess(string_to_bytes(self.id), None, 1)
         return bytes_to_string(x[0])
+
+    def get_fits(self):
+        """Retrieve data from ds9 as an astropy FITS.
+
+        Example
+        -------
+
+        >>> hdul = d.get_fits()
+        >>> hdul.info()
+        Filename: StringIO
+        No.    Name         Type      Cards   Dimensions   Format
+        0    PRIMARY     PrimaryHDU      24  (1024, 1024)  float32
+        >>> data = hdul[0].data
+        >>> data.shape
+        (1024, 1024)
+
+        Returns
+        -------
+        :class:`astropy.io.fits.hdu.hdulist.HDUList`
+            FITS object
+        """
+        self._selftest()
+        imgData = self.get('fits')
+        imgString = BytesIO(string_to_bytes(imgData))
+        return fits.open(imgString)
+
+    def set_fits(self, hdul):
+        """Display an astropy FITS in ds9.
+
+        Example
+        -------
+
+        >>> d.set_pyfits(nhdul)
+        1
+
+        Parameters
+        ----------
+        :class:`astropy.io.fits.hdu.hdulist.HDUList`
+            FITS object to display
+
+        Returns
+        -------
+        int
+            1 indicates that ds9 was contacted successfully, while a return
+            value of 0 indicates a failure.
+
+        Raises
+        ------
+        ValueError
+            if the input is not an astropy HDUList
+        """
+        self._selftest()
+        if isinstance(hdul, fits.HDUList):
+            raise ValueError('The input must be an astropy HDUList')
+        # for python2 BytesIO and StringIO are the same
+        with contextlib.closing(BytesIO()) as newFitsFile:
+            hdul.writeto(newFitsFile)
+            newfits = newFitsFile.getvalue()
+            got = self.set('fits', newfits, len(newfits))
+            return got
 
     if ds9Globals["pyfits"]:
         def get_pyfits(self):
