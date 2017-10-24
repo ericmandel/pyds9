@@ -630,6 +630,40 @@ class DS9(object):
         x = xpa.xpaaccess(string_to_bytes(self.id), None, 1)
         return bytes_to_string(x[0])
 
+    def _ds9_fits_to_bytes(self):
+        '''Returns a ds9 FITS as a byte stream
+
+        Returns
+        -------
+        :class:`six.BytesIO`
+            file-like object containing the FITS data
+        '''
+        self._selftest()
+        imgData = self.get('fits')
+        return BytesIO(string_to_bytes(imgData))
+
+    def _hdulist_to_ds9_fits(self, hdul):
+        '''Send the input HDUList to ds9
+
+        Parameters
+        ----------
+        hdul : :class:`HDUList` (astropy or pyfits)
+            FITS file to send
+
+        Returns
+        -------
+        success : int
+            1 indicates that ds9 was contacted successfully, while a return
+            value of 0 indicates a failure.
+        '''
+        self._selftest()
+        # for python2 BytesIO and StringIO are the same
+        with contextlib.closing(BytesIO()) as newFitsFile:
+            hdul.writeto(newFitsFile)
+            newfits = newFitsFile.getvalue()
+            success = self.set('fits', newfits, len(newfits))
+        return success
+
     def get_fits(self):
         """Retrieve data from ds9 as an astropy FITS.
 
@@ -650,10 +684,7 @@ class DS9(object):
         :class:`astropy.io.fits.HDUList`
             FITS object
         """
-        self._selftest()
-        imgData = self.get('fits')
-        imgString = BytesIO(string_to_bytes(imgData))
-        return fits.open(imgString)
+        return fits.open(self._ds9_fits_to_bytes())
 
     def set_fits(self, hdul):
         """Display an astropy FITS in ds9.
@@ -680,15 +711,9 @@ class DS9(object):
         ValueError
             if the input is not an astropy HDUList
         """
-        self._selftest()
         if not isinstance(hdul, fits.HDUList):
             raise ValueError('The input must be an astropy HDUList')
-        # for python2 BytesIO and StringIO are the same
-        with contextlib.closing(BytesIO()) as newFitsFile:
-            hdul.writeto(newFitsFile)
-            newfits = newFitsFile.getvalue()
-            got = self.set('fits', newfits, len(newfits))
-            return got
+        return self._hdulist_to_ds9_fits(hdul)
 
     def get_pyfits(self):
         """Retrieve data from ds9 as an pyfits FITS.
@@ -720,10 +745,7 @@ class DS9(object):
                                  " 'get_pyfits'. The method is available only"
                                  " if the package 'pyfits' is imported and"
                                  " it's version >=2.2")
-        self._selftest()
-        imgData = self.get('fits')
-        imgString = BytesIO(string_to_bytes(imgData))
-        return pyfits.open(imgString)
+        return pyfits.open(self._ds9_fits_to_bytes())
 
     def set_pyfits(self, hdul):
         """Display a pyfits FITS in ds9.
@@ -757,15 +779,9 @@ class DS9(object):
                                  " 'set_pyfits'. The method is available only"
                                  " if the package 'pyfits' is imported and"
                                  " it's version >=2.2")
-        self._selftest()
         if not isinstance(hdul, pyfits.HDUList):
             raise ValueError('The input must be a pyfits HDUList')
-        # for python2 BytesIO and StringIO are the same
-        with contextlib.closing(BytesIO()) as newFitsFile:
-            hdul.writeto(newFitsFile)
-            newfits = newFitsFile.getvalue()
-            got = self.set('fits', newfits, len(newfits))
-            return got
+        return self._hdulist_to_ds9_fits(hdul)
 
     def get_arr2np(self):
         """Convert a FITS file or an array from ds9 into a numpy array.
