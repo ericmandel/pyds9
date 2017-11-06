@@ -59,6 +59,32 @@ def test_np2bp(dtype, bitpix):
     assert output == bitpix
 
 
-def test_ds9(ds9_title):
-    ''''''
-    ds9 = pyds9.ds9_openlist(target=ds9_title)[0]
+def test_ds9_targets_empty():
+    '''If no ds9 instance is running, ds9_targets returns None'''
+    targets = pyds9.ds9_targets()
+    assert targets is None
+
+
+def test_ds9_targets(ds9_title):
+    '''ds9_targets returns open ds9 names'''
+    targets = pyds9.ds9_targets()
+    assert len(targets) == 1
+    assert ds9_title in targets[0]
+
+
+@pytest.mark.xfail(raises=ValueError, reason='No target ds9 instance')
+def test_ds9_openlist_empty():
+    '''If no ds9 instance is running, ds9_openlist raises an exception'''
+    pyds9.ds9_openlist()
+
+
+def test_ds9_openlist(ds9_title):
+    '''ds9_openlist returns running ds9 instances'''
+    ds9s = pyds9.ds9_openlist()
+    assert len(ds9s) == 1
+    assert ds9_title in ds9s[0].target
+
+
+# def test_ds9(ds9_title):
+    # ''''''
+    # ds9 = pyds9.ds9_openlist(target=ds9_title)[0]
