@@ -28,7 +28,7 @@ env:
         - ASTROPY_VERSION=stable
         - MAIN_CMD='python setup.py'
         - SETUP_CMD='test'
-        - PIP_DEPENDENCIES=''
+        - PIP_DEPENDENCIES='pytest-xvfb'
 
         # For this package-template, we include examples of Cython modules,
         # so Cython is required for testing. If your package does not include
