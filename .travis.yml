@@ -74,7 +74,7 @@ matrix:
 
         # Try Astropy development and lts version
         - env: PYTHON_VERSION=3.6 ASTROPY_VERSION=development
-               PIP_DEPENDENCIES='pytest-astropy'
+               PIP_DEPENDENCIES='pytest-astropy pytest-xvfb'
         - env: PYTHON_VERSION=2.7 ASTROPY_VERSION=lts NUMPY_VERSION=1.12
                CONDA_CHANNELS='astropy-ci-extras'
         - env: PYTHON_VERSION=3.6 ASTROPY_VERSION=lts NUMPY_VERSION=1.12
