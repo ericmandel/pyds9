@@ -4,14 +4,17 @@
 
 from astropy.tests.pytest_plugins import *
 
-## Uncomment the following line to treat all DeprecationWarnings as
-## exceptions
-# enable_deprecations_as_exceptions()
+import py.path
+import pytest
 
-## Uncomment and customize the following lines to add/remove entries from
-## the list of packages for which version numbers are displayed when running
-## the tests. Making it pass for KeyError is essential in some cases when
-## the package uses other astropy affiliated packages.
+# Uncomment the following line to treat all DeprecationWarnings as
+# exceptions
+# pytest_plugins.enable_deprecations_as_exceptions()
+
+# Uncomment and customize the following lines to add/remove entries from
+# the list of packages for which version numbers are displayed when running
+# the tests. Making it pass for KeyError is essential in some cases when
+# the package uses other astropy affiliated packages.
 # try:
 #     PYTEST_HEADER_MODULES['Astropy'] = 'astropy'
 #     PYTEST_HEADER_MODULES['scikit-image'] = 'skimage'
@@ -36,3 +39,16 @@ try:
     TESTED_VERSIONS[packagename] = version
 except NameError:   # Needed to support Astropy <= 1.0.0
     pass
+
+
+@pytest.fixture
+def test_data_dir():
+    '''Returns the name of the test data directory as a py.path.local object'''
+    this_file = py.path.local(__file__)
+    return this_file.dirpath('tests', 'data')
+
+
+@pytest.fixture
+def test_fits(test_data_dir):
+    '''Returns the name of the test fits file as a py.path.local object'''
+    return test_data_dir.join('test.fits')
