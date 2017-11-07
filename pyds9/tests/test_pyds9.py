@@ -2,6 +2,7 @@ import random
 import subprocess as sp
 import time
 
+from astropy.io import fits
 import numpy as np
 import pytest
 
@@ -88,3 +89,44 @@ def test_ds9_openlist(ds9_title):
 # def test_ds9(ds9_title):
     # ''''''
     # ds9 = pyds9.ds9_openlist(target=ds9_title)[0]
+
+
+def test_ds9_get_fits(ds9_title, test_fits):
+    '''get a fits file as an astropy fits object'''
+    ds9 = pyds9.ds9_openlist(target='*' + ds9_title + '*')[0]
+
+    ds9.set('file {}'.format(test_fits))
+
+    hdul_from_ds9 = ds9.get_fits()
+
+    diff = fits.FITSDiff(test_fits.strpath, hdul_from_ds9,
+                         ignore_comments=['*', ])
+
+    assert diff.identical
+
+
+@pytest.mark.xfail(raises=ValueError, reason='Not an astropy hdu')
+def test_ds9_set_fits_fail(ds9_title):
+    '''set_fits wants an astropy HDUList'''
+    ds9 = pyds9.ds9_openlist(target='*' + ds9_title + '*')[0]
+    ds9.set_fits('random_type')
+
+
+def test_ds9_set_fits(tmpdir, ds9_title, test_fits):
+    '''Set the astropy fits'''
+    ds9 = pyds9.ds9_openlist(target='*' + ds9_title + '*')[0]
+
+    with fits.open(test_fits.strpath) as hdul:
+        success = ds9.set_fits(hdul)
+
+    assert success == 1
+
+    out_fits = tmpdir.join('out.fits')
+
+    with out_fits.open('w') as f:
+        sp.call(['xpaget', ds9.target, 'fits'], stdout=f)
+
+    diff = fits.FITSDiff(test_fits.strpath, out_fits.strpath,
+                         ignore_comments=['*', ])
+
+    assert diff.identical
