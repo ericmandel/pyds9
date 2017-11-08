@@ -116,7 +116,7 @@ before_script:
     # on MacOSX try to start Xvfb
     # Taken from https://github.com/travis-ci/travis-ci/issues/7313 and
     # https://github.com/widelands/widelands/commit/68b2bbe95c91f5305924154af9c36c63cdc773a0
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; export DISPLAY=:99.0; ( sudo Xvfb :99 -ac -screen 0 1024x768x8; echo ok )& ; sleep 3; fi
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export DISPLAY=:99.0; ( sudo Xvfb :99 -ac -screen 0 1024x768x8; echo ok )& sleep 3; fi
 
 script:
    - ${MAIN_CMD} $SETUP_CMD
