@@ -741,10 +741,20 @@ class DS9(object):
             if pyfits is not available on the system
         """
         if not ds9Globals["pyfits"]:
-            raise AttributeError("'DS9' object has not attribute"
-                                 " 'get_pyfits'. The method is available only"
-                                 " if the package 'pyfits' is imported and"
-                                 " it's version >=2.2")
+            warnings.warn('"get_pyfits" method should be used only to'
+                          ' retrieve from ds9 fits as "pyfits" HDUList.'
+                          ' Modify your code to use ``get_fits`` to get'
+                          ' "astropy" HDUList or, if you really want to use'
+                          ' "pyfits", install it. In the future this warning'
+                          ' will turn into an exception')
+            return self.get_fits()
+            # TODO: remove the above warning and make this method available
+            # only if pyfits is installed
+            # raise AttributeError("'DS9' object has not attribute"
+            #                      " 'get_pyfits'. The method is available"
+            #                      " only"
+            #                      " if the package 'pyfits' is imported and"
+            #                      " it's version >=2.2")
         return pyfits.open(self._ds9_fits_to_bytes())
 
     def set_pyfits(self, hdul):
@@ -775,10 +785,20 @@ class DS9(object):
             if the input is not a pyfits HDUList
         """
         if not ds9Globals["pyfits"]:
-            raise AttributeError("'DS9' object has not attribute"
-                                 " 'set_pyfits'. The method is available only"
-                                 " if the package 'pyfits' is imported and"
-                                 " it's version >=2.2")
+            warnings.warn('"set_pyfits" method should be used only to'
+                          ' send to ds9 fits as "pyfits" HDUList.'
+                          ' Modify your code to use ``set_fits`` to set'
+                          ' "astropy" HDUList or, if you really want to use'
+                          ' "pyfits", install it. In the future this warning'
+                          ' will turn into an exception')
+            return self.set_fits(hdul)
+            # TODO: remove the above warning and make this method available
+            # only if pyfits is installed
+            # raise AttributeError("'DS9' object has not attribute"
+            #                      " 'set_pyfits'. The method is available
+            #                      " only"
+            #                      " if the package 'pyfits' is imported and"
+            #                      " it's version >=2.2")
         if not isinstance(hdul, pyfits.HDUList):
             raise ValueError('The input must be a pyfits HDUList')
         return self._hdulist_to_ds9_fits(hdul)
