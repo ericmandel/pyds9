@@ -192,3 +192,38 @@ def test_ds9_set_pyfits(tmpdir, ds9_title, test_fits):
                            ignore_comments=['*', ])
 
     assert diff.identical
+
+
+def test_get_arr2np(ds9_title, test_fits):
+    '''Get the data on ds9 as a numpy array'''
+    ds9 = pyds9.ds9_openlist(target='*' + ds9_title + '*')[0]
+    ds9.set('file {}'.format(test_fits))
+
+    arr = ds9.get_arr2np()
+
+    fits_data = fits.getdata(test_fits.strpath)
+
+    np.testing.assert_array_equal(arr, fits_data)
+
+
+@pytest.mark.xfail(raises=ValueError, reason='Not a numpy array')
+def test_ds9_set_np2arr_fail(tmpdir, ds9_title, test_fits):
+    '''Set the astropy fits'''
+    ds9 = pyds9.ds9_openlist(target='*' + ds9_title + '*')[0]
+    ds9.set_np2arr('random_type')
+
+
+def test_ds9_set_np2arr(tmpdir, ds9_title, test_fits):
+    '''Set the astropy fits'''
+    ds9 = pyds9.ds9_openlist(target='*' + ds9_title + '*')[0]
+    fits_data = fits.getdata(test_fits.strpath)
+
+    success = ds9.set_np2arr(fits_data)
+
+    assert success == 1
+
+    out_fits = tmpdir.join('out.fits')
+    with out_fits.open('w') as f:
+        sp.call(['xpaget', ds9.target, 'fits'], stdout=f)
+
+    np.testing.assert_array_equal(fits_data, fits.getdata(out_fits.strpath))
