@@ -91,13 +91,21 @@ def test_ds9_openlist(ds9_title):
     # ds9 = pyds9.ds9_openlist(target=ds9_title)[0]
 
 
-def test_ds9_get_fits(ds9_title, test_fits):
+@parametrize('meth, n_warning',
+             [('get_fits', 0), ('get_pyfits', 1)])
+def test_ds9_get_fits(monkeypatch, ds9_title, test_fits, meth,
+                      n_warning):
     '''get a fits file as an astropy fits object'''
+    monkeypatch.setitem(pyds9.ds9Globals, 'pyfits', False)
     ds9 = pyds9.ds9_openlist(target='*' + ds9_title + '*')[0]
 
     ds9.set('file {}'.format(test_fits))
 
-    hdul_from_ds9 = ds9.get_fits()
+    with pytest.warns(None) as warn_records:
+        hdul_from_ds9 = getattr(ds9, meth)()
+
+    assert isinstance(hdul_from_ds9, fits.HDUList)
+    assert len(warn_records) == n_warning
 
     diff = fits.FITSDiff(test_fits.strpath, hdul_from_ds9,
                          ignore_comments=['*', ])
@@ -112,21 +120,75 @@ def test_ds9_set_fits_fail(ds9_title):
     ds9.set_fits('random_type')
 
 
-def test_ds9_set_fits(tmpdir, ds9_title, test_fits):
+@parametrize('meth, n_warning',
+             [('set_fits', 0), ('set_pyfits', 1)])
+def test_ds9_set_fits(monkeypatch, tmpdir, ds9_title, test_fits,
+                      meth, n_warning):
     '''Set the astropy fits'''
+    monkeypatch.setitem(pyds9.ds9Globals, 'pyfits', False)
     ds9 = pyds9.ds9_openlist(target='*' + ds9_title + '*')[0]
 
-    with fits.open(test_fits.strpath) as hdul:
-        success = ds9.set_fits(hdul)
+    with fits.open(test_fits.strpath) as hdul,\
+            pytest.warns(None) as warn_records:
+        success = getattr(ds9, meth)(hdul)
 
     assert success == 1
+    assert len(warn_records) == n_warning
 
     out_fits = tmpdir.join('out.fits')
-
     with out_fits.open('w') as f:
         sp.call(['xpaget', ds9.target, 'fits'], stdout=f)
 
     diff = fits.FITSDiff(test_fits.strpath, out_fits.strpath,
                          ignore_comments=['*', ])
+
+    assert diff.identical
+
+
+def test_ds9_get_pyfits(ds9_title, test_fits):
+    'use pytest to get fits'
+    pyfits = pytest.importorskip('pyfits', minversion='0.2')
+
+    ds9 = pyds9.ds9_openlist(target='*' + ds9_title + '*')[0]
+    ds9.set('file {}'.format(test_fits))
+
+    with pytest.warns(None) as warn_records:
+        hdul_from_ds9 = ds9.get_pyfits()
+
+    assert isinstance(hdul_from_ds9, pyfits.HDUList)
+    assert len(warn_records) == 0
+
+    diff = pyfits.FITSDiff(test_fits.strpath, hdul_from_ds9,
+                           ignore_comments=['*', ])
+
+    assert diff.identical
+
+
+@pytest.mark.xfail(raises=ValueError, reason='Not an astropy hdu')
+def test_ds9_set_pyfits_fail(ds9_title):
+    '''set_fits wants an astropy HDUList'''
+    pytest.importorskip('pyfits', minversion='0.2')
+    ds9 = pyds9.ds9_openlist(target='*' + ds9_title + '*')[0]
+    ds9.set_pyfits('random_type')
+
+
+def test_ds9_set_pyfits(tmpdir, ds9_title, test_fits):
+    '''Set the astropy fits'''
+    pyfits = pytest.importorskip('pyfits', minversion='0.2')
+    ds9 = pyds9.ds9_openlist(target='*' + ds9_title + '*')[0]
+
+    with pyfits.open(test_fits.strpath) as hdul,\
+            pytest.warns(None) as warn_records:
+        success = ds9.set_pyfits(hdul)
+
+    assert success == 1
+    assert len(warn_records) == 0
+
+    out_fits = tmpdir.join('out.fits')
+    with out_fits.open('w') as f:
+        sp.call(['xpaget', ds9.target, 'fits'], stdout=f)
+
+    diff = pyfits.FITSDiff(test_fits.strpath, out_fits.strpath,
+                           ignore_comments=['*', ])
 
     assert diff.identical
