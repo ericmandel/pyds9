@@ -84,6 +84,9 @@ matrix:
         - env: PYTHON_VERSION=3.6 CONDA_DEPENDENCIES='numpy ds9'
                SETUP_CMD='egg_info'
 
+        # Try with pyfits
+        - env: PIP_DEPENDENCIES='pytest-xvfb pyfits'
+
         # Try with sphinx
         # - env: PYTHON_VERSION=3.6 CONDA_DEPENDENCIES='sphinx'
 
