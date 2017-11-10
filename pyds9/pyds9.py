@@ -754,7 +754,7 @@ class DS9(object):
             #                      " 'get_pyfits'. The method is available"
             #                      " only"
             #                      " if the package 'pyfits' is imported and"
-            #                      " it's version >=2.2")
+            #                      " its version is >=2.2")
         return pyfits.open(self._ds9_fits_to_bytes())
 
     def set_pyfits(self, hdul):
@@ -798,7 +798,7 @@ class DS9(object):
             #                      " 'set_pyfits'. The method is available
             #                      " only"
             #                      " if the package 'pyfits' is imported and"
-            #                      " it's version >=2.2")
+            #                      " its version is >=2.2")
         if not isinstance(hdul, pyfits.HDUList):
             raise ValueError('The input must be a pyfits HDUList')
         return self._hdulist_to_ds9_fits(hdul)
