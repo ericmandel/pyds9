@@ -28,7 +28,7 @@ env:
         - ASTROPY_VERSION=stable
         - MAIN_CMD='python setup.py'
         - SETUP_CMD='test'
-        - PIP_DEPENDENCIES=''
+        - PIP_DEPENDENCIES='pytest-xvfb'
 
         # For this package-template, we include examples of Cython modules,
         # so Cython is required for testing. If your package does not include
@@ -74,6 +74,7 @@ matrix:
 
         # Try Astropy development and lts version
         - env: PYTHON_VERSION=3.6 ASTROPY_VERSION=development
+               PIP_DEPENDENCIES='pytest-astropy pytest-xvfb'
         - env: PYTHON_VERSION=2.7 ASTROPY_VERSION=lts NUMPY_VERSION=1.12
                CONDA_CHANNELS='astropy-ci-extras'
         - env: PYTHON_VERSION=3.6 ASTROPY_VERSION=lts NUMPY_VERSION=1.12
@@ -82,6 +83,9 @@ matrix:
         # Try without cython
         - env: PYTHON_VERSION=3.6 CONDA_DEPENDENCIES='numpy ds9'
                SETUP_CMD='egg_info'
+
+        # Try with pyfits
+        - env: PIP_DEPENDENCIES='pytest-xvfb pyfits'
 
         # Try with sphinx
         # - env: PYTHON_VERSION=3.6 CONDA_DEPENDENCIES='sphinx'
@@ -110,6 +114,12 @@ install:
     # well as at the start of the install section or in the before_install
     # section if they are needed before setting up conda) to install any
     # other dependencies.
+
+before_script:
+    # on MacOSX try to start Xvfb
+    # Taken from https://github.com/travis-ci/travis-ci/issues/7313 and
+    # https://github.com/widelands/widelands/commit/68b2bbe95c91f5305924154af9c36c63cdc773a0
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export DISPLAY=:99.0; ( sudo Xvfb :99 -ac -screen 0 1024x768x8; echo ok )& sleep 3; fi
 
 script:
    - ${MAIN_CMD} $SETUP_CMD

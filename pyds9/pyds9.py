@@ -27,6 +27,8 @@ from . import xpa
 
 from astropy.extern import six
 from astropy.extern.six import BytesIO
+from astropy.io import fits
+import numpy
 
 
 # pyds9 version
@@ -116,75 +118,92 @@ ds9Globals['bin_cmd'] = ["array",
 
 # load pyfits, if available
 try:
-    from astropy.io import fits as pyfits
-    ds9Globals["pyfits"] = 1
-except:
-    try:
-        import pyfits
-        if pyfits.__version__ >= '2.2':
-            ds9Globals["pyfits"] = 2
-        else:
-            ds9Globals["pyfits"] = 0
-    except:
-        ds9Globals["pyfits"] = 0
+    import pyfits
+    if pyfits.__version__ >= '2.2':
+        ds9Globals["pyfits"] = True
+    else:
+        warnings.warn('Pytest<2.2 is not supported')
+        ds9Globals["pyfits"] = False
+except ImportError:
+    ds9Globals["pyfits"] = False
 
-# load numpy, if available
-try:
-    import numpy
-    ds9Globals["numpy"] = 1
-except:
-    ds9Globals["numpy"] = 0
 
 # numpy-dependent routines
-if ds9Globals["numpy"]:
-    def _bp2np(bitpix):
-        """
-        Convert FITS bitpix to numpy datatype
-        """
-        if bitpix == 8:
-            return numpy.uint8
-        elif bitpix == 16:
-            return numpy.int16
-        elif bitpix == 32:
-            return numpy.int32
-        elif bitpix == 64:
-            return numpy.int64
-        elif bitpix == -32:
-            return numpy.float32
-        elif bitpix == -64:
-            return numpy.float64
-        elif bitpix == -16:
-            return numpy.uint16
-        else:
-            raise ValueError('unsupported bitpix: %d' % bitpix)
+def _bp2np(bitpix):
+    """Convert FITS bitpix to numpy datatype
 
-    def _np2bp(dtype):
-        """
-        Convert numpy datatype to FITS bitpix
-        """
-        if dtype.kind == 'u':
-            # unsigned ints
-            if dtype.itemsize == 1:
-                return 8
-            if dtype.itemsize == 2:
-                # this is not in the FITS standard?
-                return -16
-        elif dtype.kind == 'i':
-            # integers
-            if dtype.itemsize == 2:
-                return 16
-            elif dtype.itemsize == 4:
-                return 32
-            elif dtype.itemsize == 8:
-                return 64
-        elif dtype.kind == 'f':
-            # floating point
-            if dtype.itemsize == 4:
-                return -32
-            elif dtype.itemsize == 8:
-                return -64
+    Parameters
+    ----------
+    bitpix : int
+        FITS bitpix type
 
-        raise ValueError('unsupported dtype: %s' % dtype)
+    Returns
+    -------
+    numpy type
+
+    Raises
+    ------
+    ValueError
+        for unsupported bitpix
+    """
+    if bitpix == 8:
+        return numpy.uint8
+    elif bitpix == 16:
+        return numpy.int16
+    elif bitpix == 32:
+        return numpy.int32
+    elif bitpix == 64:
+        return numpy.int64
+    elif bitpix == -32:
+        return numpy.float32
+    elif bitpix == -64:
+        return numpy.float64
+    elif bitpix == -16:
+        return numpy.uint16
+    else:
+        raise ValueError('unsupported bitpix: %d' % bitpix)
+
+
+def _np2bp(dtype):
+    """Convert numpy datatype to FITS bitpix
+
+    Parameters
+    ----------
+    dtype : numpy type
+
+    Returns
+    -------
+    int
+        FITS bitpix type
+
+    Raises
+    ------
+    ValueError
+        for unsupported dtypes
+    """
+    if dtype.kind == 'u':
+        # unsigned ints
+        if dtype.itemsize == 1:
+            return 8
+        if dtype.itemsize == 2:
+            # this is not in the FITS standard?
+            return -16
+    elif dtype.kind == 'i':
+        # integers
+        if dtype.itemsize == 2:
+            return 16
+        elif dtype.itemsize == 4:
+            return 32
+        elif dtype.itemsize == 8:
+            return 64
+    elif dtype.kind == 'f':
+        # floating point
+        if dtype.itemsize == 4:
+            return -32
+        elif dtype.itemsize == 8:
+            return -64
+
+    raise ValueError('unsupported dtype: %s' % dtype)
 
 
 def string_to_bytes(string):
@@ -364,11 +383,12 @@ class DS9(object):
     In addition, a number of special methods are implemented to facilitate data
     access to/from python objects:
 
-    - get_arr2np: retrieve a FITS image or an array into a numpy array
-    - set_np2arr: send a numpy array to ds9 for display
-    - get_pyfits: retrieve a FITS image into a pyfits (or astropy) hdu list
-    - set_pyfits: send a pyfits (or astropy) hdu list to ds9 for display
-
+    - :meth:`get_arr2np`: retrieve a FITS image or an array into a numpy array
+    - :meth:`set_np2arr`: send a numpy array to ds9 for display
+    - :meth:`get_fits`: retrieve a FITS image into an astropy  hdu list
+    - :meth:`set_fits`: send an astropy hdu list to ds9 for display
+    - :meth:`get_pyfits`: retrieve a FITS image into a pyfits hdu list
+    - :meth:`set_pyfits`: send a pyfits hdu list to ds9 for display
     """
 
     # access points that do not get trailing cr stripped from them
@@ -575,7 +595,7 @@ class DS9(object):
 
         """
         self._selftest()
-        if ds9Globals["numpy"] and type(buf) == numpy.ndarray:
+        if type(buf) == numpy.ndarray:
                 s = buf.tostring()
         elif type(buf) == array.array:
             try:  # Python >= 3.2
@@ -610,184 +630,290 @@ class DS9(object):
         x = xpa.xpaaccess(string_to_bytes(self.id), None, 1)
         return bytes_to_string(x[0])
 
-    if ds9Globals["pyfits"]:
-        def get_pyfits(self):
-            """
-            :rtype: pyfits hdulist
+    def _ds9_fits_to_bytes(self):
+        '''Returns a ds9 FITS as a byte stream
 
-            To read FITS data or a raw array from ds9 into pyfits, use the
-            'get_pyfits' method. It takes no args and returns an hdu list::
+        Returns
+        -------
+        :class:`six.BytesIO`
+            file-like object containing the FITS data
+        '''
+        self._selftest()
+        imgData = self.get('fits')
+        return BytesIO(string_to_bytes(imgData))
 
-                >>> hdul = d.get_pyfits()
-                >>> hdul.info()
-                Filename: StringIO
-                No.    Name         Type      Cards   Dimensions   Format
-                0    PRIMARY     PrimaryHDU      24  (1024, 1024)  float32
-                >>> data = hdul[0].data
-                >>> data.shape
-                (1024, 1024)
+    def _hdulist_to_ds9_fits(self, hdul):
+        '''Send the input HDUList to ds9
 
-            """
-            self._selftest()
-            imgData = self.get('fits')
-            imgString = BytesIO(string_to_bytes(imgData))
-            return pyfits.open(imgString)
+        Parameters
+        ----------
+        hdul : :class:`HDUList` (astropy or pyfits)
+            FITS file to send
 
-        def set_pyfits(self, hdul):
-            """
-            :param hdul: pyfits hdulist
+        Returns
+        -------
+        success : int
+            1 indicates that ds9 was contacted successfully, while a return
+            value of 0 indicates a failure.
+        '''
+        self._selftest()
+        # for python2 BytesIO and StringIO are the same
+        with contextlib.closing(BytesIO()) as newFitsFile:
+            hdul.writeto(newFitsFile)
+            newfits = newFitsFile.getvalue()
+            success = self.set('fits', newfits, len(newfits))
+        return success
 
-            :rtype: 1 for success, 0 for failure
+    def get_fits(self):
+        """Retrieve data from ds9 as an astropy FITS.
 
-            After manipulating or otherwise modifying a pyfits hdulist (or
-            making a new one), you can display it in ds9 using the 'set_pyfits'
-            method, which takes the hdulist as its sole argument::
+        Examples
+        --------
 
-                >>> d.set_pyfits(nhdul)
-                1
+        >>> hdul = d.get_fits()
+        >>> hdul.info()
+        Filename: StringIO
+        No.    Name         Type      Cards   Dimensions   Format
+        0    PRIMARY     PrimaryHDU      24  (1024, 1024)  float32
+        >>> data = hdul[0].data
+        >>> data.shape
+        (1024, 1024)
 
-            A return value of 1 indicates that ds9 was contacted successfully,
-            while a return value of 0 indicates a failure.
-            """
-            self._selftest()
-            if not ds9Globals["pyfits"]:
-                raise ValueError('set_pyfits not defined (pyfits not found)')
-            if type(hdul) != pyfits.HDUList:
-                if ds9Globals["pyfits"] == 1:
-                    raise ValueError('requires pyfits.HDUList as input')
-                else:
-                    raise ValueError('requires astropy.HDUList as input')
-            # for python2 BytesIO and StringIO are the same
-            with contextlib.closing(BytesIO()) as newFitsFile:
-                hdul.writeto(newFitsFile)
-                newfits = newFitsFile.getvalue()
-                got = self.set('fits', newfits, len(newfits))
-                return got
+        Returns
+        -------
+        :class:`astropy.io.fits.HDUList`
+            FITS object
+        """
+        return fits.open(self._ds9_fits_to_bytes())
 
-    else:
-        def get_pyfits(self):
-            """
-            This method is not defined because pyfits in not installed.
-            """
-            raise ValueError('get_pyfits not defined (pyfits not found)')
+    def set_fits(self, hdul):
+        """Display an astropy FITS in ds9.
 
-        def set_pyfits(self):
-            """
-            This method is not defined because pyfits in not installed.
-            """
-            raise ValueError('set_pyfits not defined (pyfits not found)')
+        Examples
+        --------
 
-    if ds9Globals["numpy"]:
-        def get_arr2np(self):
-            """
-            :rtype: numpy array
+        >>> d.set_fits(nhdul)
+        1
 
-            To read a FITS file or an array from ds9 into a numpy array, use
-            the 'get_arr2np' method. It takes no arguments and returns the
-            np array::
+        Parameters
+        ----------
+        hdul : :class:`astropy.io.fits.HDUList`
+            FITS object to display
 
-                >>> d.get("file")
-                '/home/eric/data/casa.fits[EVENTS]'
-                >>> arr = d.get_arr2np()
-                >>> arr.shape
-                (1024, 1024)
-                >>> arr.dtype
-                dtype('float32')
-                >>> arr.max()
-                51.0
+        Returns
+        -------
+        int
+            1 indicates that ds9 was contacted successfully, while a return
+            value of 0 indicates a failure.
 
-            """
-            self._selftest()
-            w = int(self.get('fits width'))
-            h = int(self.get('fits height'))
-            d = int(self.get('fits depth'))
-            bp = int(self.get('fits bitpix'))
-            s = self.get('array')
-            if d > 1:
-                arr = numpy.fromstring(s, dtype=_bp2np(bp)).reshape((d, h, w))
+        Raises
+        ------
+        ValueError
+            if the input is not an astropy HDUList
+        """
+        if not isinstance(hdul, fits.HDUList):
+            raise ValueError('The input must be an astropy HDUList')
+        return self._hdulist_to_ds9_fits(hdul)
+
+    def get_pyfits(self):
+        """Retrieve data from ds9 as an pyfits FITS.
+
+        Examples
+        --------
+
+        >>> hdul = d.get_pyfits()
+        >>> hdul.info()
+        Filename: StringIO
+        No.    Name         Type      Cards   Dimensions   Format
+        0    PRIMARY     PrimaryHDU      24  (1024, 1024)  float32
+        >>> data = hdul[0].data
+        >>> data.shape
+        (1024, 1024)
+
+        Returns
+        -------
+        :class:`pyfits.HDUList`
+            FITS object
+
+        Raises
+        ------
+        AttributeError
+            if pyfits is not available on the system
+        """
+        if not ds9Globals["pyfits"]:
+            warnings.warn('"get_pyfits" method should be used only to'
+                          ' retrieve from ds9 fits as "pyfits" HDUList.'
+                          ' Modify your code to use ``get_fits`` to get'
+                          ' "astropy" HDUList or, if you really want to use'
+                          ' "pyfits", install it. In the future this warning'
+                          ' will turn into an exception')
+            return self.get_fits()
+            # TODO: remove the above warning and make this method available
+            # only if pyfits is installed
+            # raise AttributeError("'DS9' object has not attribute"
+            #                      " 'get_pyfits'. The method is available"
+            #                      " only"
+            #                      " if the package 'pyfits' is imported and"
+            #                      " its version is >=2.2")
+        return pyfits.open(self._ds9_fits_to_bytes())
+
+    def set_pyfits(self, hdul):
+        """Display a pyfits FITS in ds9.
+
+        Examples
+        --------
+
+        >>> d.set_pyfits(nhdul)
+        1
+
+        Parameters
+        ----------
+        hdul : :class:`pyfits.HDUList`
+            FITS object to display
+
+        Returns
+        -------
+        int
+            1 indicates that ds9 was contacted successfully, while a return
+            value of 0 indicates a failure.
+
+        Raises
+        ------
+        AttributeError
+            if pyfits is not available on the system
+        ValueError
+            if the input is not a pyfits HDUList
+        """
+        if not ds9Globals["pyfits"]:
+            warnings.warn('"set_pyfits" method should be used only to'
+                          ' send to ds9 fits as "pyfits" HDUList.'
+                          ' Modify your code to use ``set_fits`` to set'
+                          ' "astropy" HDUList or, if you really want to use'
+                          ' "pyfits", install it. In the future this warning'
+                          ' will turn into an exception')
+            return self.set_fits(hdul)
+            # TODO: remove the above warning and make this method available
+            # only if pyfits is installed
+            # raise AttributeError("'DS9' object has not attribute"
+            #                      " 'set_pyfits'. The method is available
+            #                      " only"
+            #                      " if the package 'pyfits' is imported and"
+            #                      " its version is >=2.2")
+        if not isinstance(hdul, pyfits.HDUList):
+            raise ValueError('The input must be a pyfits HDUList')
+        return self._hdulist_to_ds9_fits(hdul)
+
+    def get_arr2np(self):
+        """Convert a FITS file or an array from ds9 into a numpy array.
+
+        Examples
+        --------
+
+        >>> d.get("file")
+        '/home/eric/data/casa.fits[EVENTS]'
+        >>> arr = d.get_arr2np()
+        >>> arr.shape
+        (1024, 1024)
+        >>> arr.dtype
+        dtype('float32')
+        >>> arr.max()
+        51.0
+
+        Returns
+        -------
+        numpy array
+
+        """
+        self._selftest()
+        w = int(self.get('fits width'))
+        h = int(self.get('fits height'))
+        d = int(self.get('fits depth'))
+        bp = int(self.get('fits bitpix'))
+        s = self.get('array')
+        if d > 1:
+            arr = numpy.fromstring(s, dtype=_bp2np(bp)).reshape((d, h, w))
+        else:
+            arr = numpy.fromstring(s, dtype=_bp2np(bp)).reshape((h, w))
+        # if sys.byteorder != 'big': arr.byteswap(True)
+        return arr
+
+    def set_np2arr(self, arr, dtype=None):
+        """After manipulating or otherwise modifying a numpy array (or making a
+        new one), you can display it in ds9 using this method, which takes the
+        array as its first argument::
+
+            >>> d.set_np2arr(arr)
+            1
+
+        A return value of 1 indicates that ds9 was contacted successfully,
+        while a return value of 0 indicates a failure.
+
+        An optional second argument specifies a datatype into which the
+        array will be converted before being sent to ds9. This is
+        important in the case where the array has datatype np.uint64,
+        which is not recognized by ds9::
+
+            >>> d.set_np2arr(arru64)
+            ...
+            ValueError: uint64 is unsupported by DS9 (or FITS)
+            >>> d.set_np2arr(arru64,dtype=np.float64)
+            1
+
+        Also note that ``np.int8`` is sent to ds9 as ``int16`` data,
+        ``np.uint32`` is sent as ``int64`` data, and ``np.float16`` is sent as
+        ``float32`` data.
+
+        Parameters
+        ----------
+        arr : numpy array
+            array to send to ds9
+        dtype: data type, optional
+            convert array to ``dtype`` before sending
+
+        Returns
+        -------
+        int :
+            1 for success, 0 for failure
+
+        Raises
+        ------
+        ValueError
+            if the input is not a numpy array
+        """
+        self._selftest()
+        if type(arr) != numpy.ndarray:
+            raise ValueError('requires numpy.ndarray as input')
+        if dtype and dtype != arr.dtype:
+            narr = arr.astype(dtype)
+        else:
+            if arr.dtype == numpy.int8:
+                narr = arr.astype(numpy.int16)
+            elif arr.dtype == numpy.uint32:
+                narr = arr.astype(numpy.int64)
+            elif hasattr(numpy, "float16") and arr.dtype == numpy.float16:
+                narr = arr.astype(numpy.float32)
             else:
-                arr = numpy.fromstring(s, dtype=_bp2np(bp)).reshape((h, w))
-            # if sys.byteorder != 'big': arr.byteswap(True)
-            return arr
+                narr = arr
+        if not narr.flags['C_CONTIGUOUS']:
+            narr = numpy.ascontiguousarray(narr)
+        bp = _np2bp(narr.dtype)
+        buf = narr.tostring('C')
+        blen = len(buf)
+        (w, h) = narr.shape
 
-        def set_np2arr(self, arr, dtype=None):
-            """
-            :param arr: numpy array
-            :param dtype: data type into which to convert array before sending
+        # note that this needs the "endian=" part because sometimes it's
+        # left out completely
+        endianness = ''
+        if narr.dtype.byteorder == '=':
+            endianness = ',endian=' + sys.byteorder
+        elif narr.dtype.byteorder == '<':
+            endianness = ',endian=little'
+        elif narr.dtype.byteorder == '>':
+            endianness = ',endian=big'
 
-            :rtype: 1 for success, 0 for failure
-
-            After manipulating or otherwise modifying a numpy array (or making
-            a new one), you can display it in ds9 using the 'set_np2arr'
-            method, which takes the array as its first argument::
-
-                >>> d.set_np2arr(arr)
-                1
-
-            A return value of 1 indicates that ds9 was contacted successfully,
-            while a return value of 0 indicates a failure.
-
-            An optional second argument specifies a datatype into which the
-            array will be converted before being sent to ds9. This is
-            important in the case where the array has datatype np.uint64,
-            which is not recognized by ds9::
-
-                >>> d.set_np2arr(arru64)
-                ...
-                ValueError: uint64 is unsupported by DS9 (or FITS)
-                >>> d.set_np2arr(arru64,dtype=np.float64)
-                1
-
-            Also note that np.int8 is sent to ds9 as int16 data, np.uint32 is
-            sent as int64 data, and np.float16 is sent as float32 data.
-            """
-            self._selftest()
-            if type(arr) != numpy.ndarray:
-                raise ValueError('requires numpy.ndarray as input')
-            if dtype and dtype != arr.dtype:
-                narr = arr.astype(dtype)
-            else:
-                if arr.dtype == numpy.int8:
-                    narr = arr.astype(numpy.int16)
-                elif arr.dtype == numpy.uint32:
-                    narr = arr.astype(numpy.int64)
-                elif hasattr(numpy, "float16") and arr.dtype == numpy.float16:
-                    narr = arr.astype(numpy.float32)
-                else:
-                    narr = arr
-            if not narr.flags['C_CONTIGUOUS']:
-                narr = numpy.ascontiguousarray(narr)
-            bp = _np2bp(narr.dtype)
-            buf = narr.tostring('C')
-            blen = len(buf)
-            (w, h) = narr.shape
-
-            # note that this needs the "endian=" part because sometimes it's
-            # left out completely
-            endianness = ''
-            if narr.dtype.byteorder == '=':
-                endianness = ',endian=' + sys.byteorder
-            elif narr.dtype.byteorder == '<':
-                endianness = ',endian=little'
-            elif narr.dtype.byteorder == '>':
-                endianness = ',endian=big'
-
-            paramlist = 'array [xdim={0},ydim={1},bitpix={2}{3}]'
-            return self.set(paramlist.format(h, w, bp, endianness), buf,
-                            blen+1)
-
-    else:
-        def get_arr2np(self):
-            """
-            This method is not defined because numpy in not installed.
-            """
-            raise ValueError('get_arr2np not defined (numpy not found)')
-
-        def set_np2arr(self):
-            """
-            This method is not defined because numpy in not installed.
-            """
-            raise ValueError('set_np2arr not defined (numpy not found)')
+        paramlist = 'array [xdim={0},ydim={1},bitpix={2}{3}]'
+        return self.set(paramlist.format(h, w, bp, endianness), buf,
+                        blen+1)
 
 
 class ds9(DS9):

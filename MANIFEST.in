@@ -12,6 +12,7 @@ recursive-include licenses *
 recursive-include cextern *
 recursive-include cextern/xpa *
 recursive-include scripts *
+recursive-include pyds9/tests/data *
 
 prune build
 prune docs/_build
