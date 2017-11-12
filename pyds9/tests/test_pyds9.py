@@ -218,3 +218,15 @@ def test_ds9_set_np2arr(tmpdir, ds9_obj, test_fits):
         sp.call(['xpaget', ds9_obj.target, 'fits'], stdout=f)
 
     np.testing.assert_array_equal(fits_data, fits.getdata(out_fits.strpath))
+
+
+@parametrize('action, args',
+             [(getattr, ()),
+              pytest.mark.xfail(raises=AttributeError,
+                                reason='The attribute is readonly')
+                               ((setattr, (42, )))])
+@parametrize('attr', ['target', 'id', 'method'])
+def test_ds9_readonly_props(ds9_obj, action, args, attr):
+    '''Make sure that readonly attributes are such'''
+
+    action(ds9_obj, attr, *args)
