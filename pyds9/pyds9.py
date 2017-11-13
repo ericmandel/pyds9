@@ -467,14 +467,17 @@ class DS9(object):
                 if tlist:
                     break
                 time.sleep(1)
+
         tlist = bytes_to_string(tlist)
+
+        if 'XPA_METHOD' in os.environ.keys():
+            method = os.environ['XPA_METHOD']
+        else:
+            method = 'inet'
+
         if not tlist:
             raise ValueError('no active ds9 running for target: %s' % target)
         elif len(tlist) > 1:
-            if 'XPA_METHOD' in os.environ.keys():
-                method = os.environ['XPA_METHOD']
-            else:
-                method = 'inet'
             if method == 'local' or method == 'unix':
                 s = 'local file'
             else:
@@ -494,6 +497,7 @@ class DS9(object):
             a = tlist[0].split()
             self._target = target
             self._id = a[1]
+            self._method = method
             self.verify = verify
 
     @property
@@ -509,7 +513,7 @@ class DS9(object):
     @property
     def method(self):
         '''Name of the xpa method used (read-only)'''
-        return None
+        return self._method
 
     def _selftest(self):
         """
