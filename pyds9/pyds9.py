@@ -395,9 +395,6 @@ class DS9(object):
     # access points that do not get trailing cr stripped from them
     _nostrip = ['array', 'fits', 'regions']
 
-    # private attributes that cannot be changed
-    _privates = ['target', 'id', 'method']
-
     # ds9 constructor args:
     # target => XPA template (only one target per object is allowed)
     # verify => use xpaaccess to check target before each method call
@@ -495,25 +492,24 @@ class DS9(object):
             raise ValueError('too many ds9 instances for target: %s' % target)
         else:
             a = tlist[0].split()
-            self.__dict__['target'] = target
-            self.__dict__['id'] = a[1]
+            self._target = target
+            self._id = a[1]
             self.verify = verify
 
-    def __setattr__(self, attrname, value):
-        """
-        An internal routine to guard read-only attributes.
-        """
-        if attrname in self._privates:
-            raise AttributeError('attribute modification is not permitted: %s'
-                                 % attrname)
-        else:
-            propobj = getattr(self.__class__, attrname, None)
-            if isinstance(propobj, property):
-                if propobj.fset is None:
-                    raise AttributeError("can't set attribute")
-                propobj.fset(self, value)
-            else:
-                self.__dict__[attrname] = value
+    @property
+    def target(self):
+        '''Name of the target ds9 instance (read-only)'''
+        return self._target
+
+    @property
+    def id(self):
+        '''Name of the id of the ds9 instance (read-only)'''
+        return self._id
+
+    @property
+    def method(self):
+        '''Name of the xpa method used (read-only)'''
+        return None
 
     def _selftest(self):
         """
