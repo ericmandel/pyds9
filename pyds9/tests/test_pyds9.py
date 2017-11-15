@@ -230,3 +230,20 @@ def test_ds9_readonly_props(ds9_obj, action, args, attr):
     '''Make sure that readonly attributes are such'''
 
     action(ds9_obj, attr, *args)
+
+
+def test_ds9_extra_prop(ds9_title):
+    '''Regression test to make sure that issues like #34 don't happen
+    anymore'''
+    class DS9_(pyds9.DS9):
+        @property
+        def frame(self):
+            return self.get("frame")
+
+        @frame.setter
+        def frame(self, value):
+            self.set("frame {}".format(value))
+
+    ds9 = DS9_(target='*' + ds9_title + '*')
+    a = ds9.frame
+    ds9.frame = int(a) + 1
