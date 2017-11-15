@@ -34,7 +34,8 @@ import numpy
 # pyds9 version
 __version__ = '1.8.1'
 
-__all__ = ['DS9', 'ds9', 'ds9_openlist', 'ds9_targets', 'ds9_xpans']
+__all__ = ['DS9', 'ds9', 'ds9_openlist', 'ds9_targets', 'ds9_xpans',
+           'ds9Globals']
 
 # skip all the doctests in this module
 __doctest_skip__ = ['*']
@@ -394,9 +395,6 @@ class DS9(object):
     # access points that do not get trailing cr stripped from them
     _nostrip = ['array', 'fits', 'regions']
 
-    # private attributes that cannot be changed
-    _privates = ['target', 'id', 'method']
-
     # ds9 constructor args:
     # target => XPA template (only one target per object is allowed)
     # verify => use xpaaccess to check target before each method call
@@ -469,14 +467,17 @@ class DS9(object):
                 if tlist:
                     break
                 time.sleep(1)
+
         tlist = bytes_to_string(tlist)
+
+        if 'XPA_METHOD' in os.environ.keys():
+            method = os.environ['XPA_METHOD']
+        else:
+            method = 'inet'
+
         if not tlist:
             raise ValueError('no active ds9 running for target: %s' % target)
         elif len(tlist) > 1:
-            if 'XPA_METHOD' in os.environ.keys():
-                method = os.environ['XPA_METHOD']
-            else:
-                method = 'inet'
             if method == 'local' or method == 'unix':
                 s = 'local file'
             else:
@@ -494,25 +495,25 @@ class DS9(object):
             raise ValueError('too many ds9 instances for target: %s' % target)
         else:
             a = tlist[0].split()
-            self.__dict__['target'] = target
-            self.__dict__['id'] = a[1]
+            self._target = target
+            self._id = a[1]
+            self._method = method
             self.verify = verify
 
-    def __setattr__(self, attrname, value):
-        """
-        An internal routine to guard read-only attributes.
-        """
-        if attrname in self._privates:
-            raise AttributeError('attribute modification is not permitted: %s'
-                                 % attrname)
-        else:
-            propobj = getattr(self.__class__, attrname, None)
-            if isinstance(propobj, property):
-                if propobj.fset is None:
-                    raise AttributeError("can't set attribute")
-                propobj.fset(self, value)
-            else:
-                self.__dict__[attrname] = value
+    @property
+    def target(self):
+        '''Name of the target ds9 instance (read-only)'''
+        return self._target
+
+    @property
+    def id(self):
+        '''Name of the id of the ds9 instance (read-only)'''
+        return self._id
+
+    @property
+    def method(self):
+        '''Name of the xpa method used (read-only)'''
+        return self._method
 
     def _selftest(self):
         """
