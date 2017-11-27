@@ -188,13 +188,18 @@ def test_ds9_set_pyfits(tmpdir, ds9_obj, test_fits):
     assert diff.identical
 
 
-def test_get_arr2np(ds9_obj, test_fits):
+fits_names = parametrize('fits_name', ['test.fits', 'test_3D.fits'])
+
+
+@fits_names
+def test_get_arr2np(ds9_obj, test_data_dir, fits_name):
     '''Get the data on ds9 as a numpy array'''
-    ds9_obj.set('file {}'.format(test_fits))
+    fits_file = test_data_dir.join(fits_name)
+    ds9_obj.set('file {}'.format(fits_file))
 
     arr = ds9_obj.get_arr2np()
 
-    fits_data = fits.getdata(test_fits.strpath)
+    fits_data = fits.getdata(fits_file.strpath)
 
     np.testing.assert_array_equal(arr, fits_data)
 
@@ -205,9 +210,12 @@ def test_ds9_set_np2arr_fail(tmpdir, ds9_obj, test_fits):
     ds9_obj.set_np2arr('random_type')
 
 
-def test_ds9_set_np2arr(tmpdir, ds9_obj, test_fits):
+@fits_names
+def test_ds9_set_np2arr(tmpdir, ds9_obj, test_data_dir, fits_name):
     '''Set the astropy fits'''
-    fits_data = fits.getdata(test_fits.strpath)
+    fits_file = test_data_dir.join(fits_name)
+
+    fits_data = fits.getdata(fits_file.strpath)
 
     success = ds9_obj.set_np2arr(fits_data)
 
