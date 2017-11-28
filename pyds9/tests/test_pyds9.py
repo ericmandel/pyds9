@@ -204,10 +204,12 @@ def test_get_arr2np(ds9_obj, test_data_dir, fits_name):
     np.testing.assert_array_equal(arr, fits_data)
 
 
-@pytest.mark.xfail(raises=ValueError, reason='Not a numpy array')
-def test_ds9_set_np2arr_fail(tmpdir, ds9_obj, test_fits):
-    '''Set the astropy fits'''
-    ds9_obj.set_np2arr('random_type')
+@pytest.mark.xfail(raises=ValueError,
+                   reason='Not a numpy array or not valid shape')
+@parametrize('input_', ['random_type', np.arange(5)])
+def test_ds9_set_np2arr_fail(tmpdir, ds9_obj, input_):
+    '''Set the passing wrong arrays'''
+    ds9_obj.set_np2arr(input_)
 
 
 @fits_names
