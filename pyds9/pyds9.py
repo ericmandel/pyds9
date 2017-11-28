@@ -913,9 +913,9 @@ class DS9(object):
 
         paramlist = 'array '
         if narr.ndim == 2:
-            paramlist += '[xdim={shape[0]},ydim={shape[1]}'
+            paramlist += '[xdim={shape[1]},ydim={shape[0]}'
         elif narr.ndim == 3:
-            paramlist += '[xdim={shape[1]},ydim={shape[2]},zdim={shape[0]}'
+            paramlist += '[xdim={shape[2]},ydim={shape[1]},zdim={shape[0]}'
         else:
             raise ValueError('The input numpy array must have 2 or 3'
                              ' dimensions, not {}'.format(narr.ndim))
