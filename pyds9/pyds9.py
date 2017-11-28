@@ -900,7 +900,6 @@ class DS9(object):
         bp = _np2bp(narr.dtype)
         buf = narr.tostring('C')
         blen = len(buf)
-        (w, h) = narr.shape
 
         # note that this needs the "endian=" part because sometimes it's
         # left out completely
@@ -912,9 +911,17 @@ class DS9(object):
         elif narr.dtype.byteorder == '>':
             endianness = ',endian=big'
 
-        paramlist = 'array [xdim={0},ydim={1},bitpix={2}{3}]'
-        return self.set(paramlist.format(h, w, bp, endianness), buf,
-                        blen+1)
+        paramlist = 'array '
+        if narr.ndim == 2:
+            paramlist += '[xdim={shape[0]},ydim={shape[1]}'
+        elif narr.ndim == 3:
+            paramlist += '[xdim={shape[1]},ydim={shape[2]},zdim={shape[0]}'
+        else:
+            raise ValueError('The input numpy array must have 2 or 3'
+                             ' dimensions, not {}'.format(narr.ndim))
+        paramlist += ',bitpix={bp}{endian}]'
+        return self.set(paramlist.format(shape=narr.shape, bp=bp,
+                                         endian=endianness), buf, blen+1)
 
 
 class ds9(DS9):
