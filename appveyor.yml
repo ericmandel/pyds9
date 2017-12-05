@@ -45,7 +45,8 @@ install:
 # Not a .NET project, we build the package in the install step instead
 build: false
 
-os: Visual Studio 2015 Update 2
+# Update 2 does not exist, and Visual Studio 2015 is the default
+# os: Visual Studio 2015 Update 2
 
 matrix:
     # no need to run all the test if a build fails
