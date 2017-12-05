@@ -18,14 +18,14 @@ environment:
 
   matrix:
 
-      # We test Python 2.7 and 3.5 because 2.7 is the supported Python 2
-      # release of Astropy and Python 3.5 is the latest Python 3 release.
+      # We test Python 2.7 and 3.6 because 2.7 is the supported Python 2
+      # release of Astropy and Python 3.6 is the latest Python 3 release.
 
-      - PYTHON_VERSION: "2.7"
+      - PYTHON_VERSION: "3.6"
         ASTROPY_VERSION: "stable"
         NUMPY_VERSION: "stable"
 
-      - PYTHON_VERSION: "3.6"
+      - PYTHON_VERSION: "2.7"
         ASTROPY_VERSION: "stable"
         NUMPY_VERSION: "stable"
 
@@ -35,11 +35,21 @@ platform:
 install:
     - "git clone git://github.com/astropy/ci-helpers.git"
     - "powershell ci-helpers/appveyor/install-miniconda.ps1"
+    # set the path again (ci-helpers does this)
     - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
     - "activate test"
+    # Test that PATH is set correctly
+    - "conda --version"
+    - "python --version"
 
 # Not a .NET project, we build the package in the install step instead
 build: false
+
+os: Visual Studio 2015 Update 2
+
+matrix:
+    # no need to run all the test if a build fails
+    fast_finish: true
 
 test_script:
     - "%CMD_IN_ENV% python setup.py test"
