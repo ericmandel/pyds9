@@ -53,6 +53,9 @@ install:
     - 'echo Check Cygwin setup'
     - '%CYG_ROOT%/bin/bash -lc "cygcheck -dc cygwin"'
     - 'echo Done setting up Cygwin'
+    - 'echo Add Cygwin to the path'
+    - "SET PATH=%CYG_ROOT%\\bin;%PATH%"
+    - 'echo %PATH%'
 
 # Not a .NET project, we build the package in the install step instead
 build: false
