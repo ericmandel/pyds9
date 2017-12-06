@@ -68,4 +68,6 @@ matrix:
     fast_finish: true
 
 test_script:
-    - "%CMD_IN_ENV% python setup.py test"
+    # - "%CMD_IN_ENV% python setup.py test"
+    # Give a try without setting the sdk from astropy-ci
+    - "python setup.py test"
