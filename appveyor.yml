@@ -17,9 +17,10 @@ environment:
       PIP_DEPENDENCIES: "pytest-xvfb"
       # setup Cygwin. Taken from
       # https://github.com/DynamicDevices/mono/blob/master/appveyor.yml
-      CYG_ROOT: C:/cygwin
+      CYG_ROOT: 'C:\cygwin'
       CYG_MIRROR: http://cygwin.mirror.constant.com
-      CYG_CACHE: C:/cygwin/var/cache/setup
+      CYG_CACHE: 'C:\cygwin\var\cache\setup'
+      MINGW_ROOT: 'C:\MinGW'
 
   matrix:
 
@@ -48,14 +49,17 @@ install:
     - "python --version"
     # setup Cygwin. Taken from
     # https://github.com/DynamicDevices/mono/blob/master/appveyor.yml
-    - 'echo Setting up Cygwin dependencies'
-    - '%CYG_ROOT%\setup-x86.exe -qnNdO -R "%CYG_ROOT%" -s "%CYG_MIRROR%" -l "%CYG_CACHE%" -P autoconf -P automake -P bison -P gcc-core -P gcc-g++ -P mingw-runtime -P mingw-binutils -P mingw-gcc-core -P mingw-gcc-g++ -P mingw-pthreads -P mingw-w32api -P libtool -P make -P python -P gettext-devel -P gettext -P intltool -P libiconv -P pkg-config -P git -P wget -P curl > NUL' 
+    # - 'echo Setting up Cygwin dependencies'
+    # - '%CYG_ROOT%\setup-x86.exe -qnNdO -R "%CYG_ROOT%" -s "%CYG_MIRROR%" -l "%CYG_CACHE%" -P autoconf -P automake -P bison -P gcc-core -P gcc-g++ -P mingw-runtime -P mingw-binutils -P mingw-gcc-core -P mingw-gcc-g++ -P mingw-pthreads -P mingw-w32api -P libtool -P make -P python -P gettext-devel -P gettext -P intltool -P libiconv -P pkg-config -P git -P wget -P curl > NUL' 
     - 'echo Check Cygwin setup'
     - '%CYG_ROOT%/bin/bash -lc "cygcheck -dc cygwin"'
     - 'echo Done setting up Cygwin'
-    - 'echo Add Cygwin to the path'
-    - "SET PATH=%CYG_ROOT%\\bin;%PATH%"
+    # - 'echo Add Cygwin to the path'
+    # - "SET PATH=%CYG_ROOT%\\bin;%PATH%"
+    - 'echo add MinGW to the path'
+    - "SET PATH=%MINGW_ROOT%\\bin;%PATH%"
     - 'echo %PATH%'
+    - 'which gcc'
 
 # Not a .NET project, we build the package in the install step instead
 build: false
