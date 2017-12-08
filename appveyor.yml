@@ -60,6 +60,7 @@ install:
     - "SET PATH=%MINGW_ROOT%\\bin;%PATH%"
     - 'echo %PATH%'
     - 'which gcc'
+    - 'which cl'
 
 # Not a .NET project, we build the package in the install step instead
 build: false
