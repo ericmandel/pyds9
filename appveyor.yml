@@ -60,7 +60,8 @@ install:
     - "SET PATH=%MINGW_ROOT%\\bin;%PATH%"
     - 'echo %PATH%'
     - 'which gcc'
-    - 'dir /b /s unistd.h'
+    - 'echo check the %MINWG_ROOT%'
+    - 'dir %MINWG_ROOT% /B'
 
 # Not a .NET project, we build the package in the install step instead
 build: false
