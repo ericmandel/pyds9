@@ -61,6 +61,7 @@ install:
     - 'echo %PATH%'
     - 'which gcc'
     - 'which cl'
+    - 'dir /b /s *unistd.h'
 
 # Not a .NET project, we build the package in the install step instead
 build: false
