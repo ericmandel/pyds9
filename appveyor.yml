@@ -35,6 +35,12 @@ environment:
         ASTROPY_VERSION: "stable"
         NUMPY_VERSION: "stable"
 
+init:
+  - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+
+on_finish:
+  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+
 platform:
     -x64
 
@@ -60,8 +66,6 @@ install:
     - "SET PATH=%MINGW_ROOT%\\bin;%PATH%"
     - 'echo %PATH%'
     - 'which gcc'
-    - 'echo check the %MINWG_ROOT%'
-    - 'dir %MINWG_ROOT% /B'
 
 # Not a .NET project, we build the package in the install step instead
 build: false
@@ -76,4 +80,4 @@ matrix:
 test_script:
     # - "%CMD_IN_ENV% python setup.py test"
     # Give a try without setting the sdk from astropy-ci
-    - "python setup.py test"
+    - "python setup.py build --compiler gcc"
