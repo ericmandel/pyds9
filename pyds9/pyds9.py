@@ -11,6 +11,7 @@ ds9.py connects python and ds9 via the xpa messaging system:
 from __future__ import (print_function, absolute_import, division,
                         unicode_literals)
 
+from collections import defaultdict
 import contextlib
 from distutils.spawn import find_executable
 import sys
@@ -315,35 +316,37 @@ def ds9_xpans():
         return 0
 
 
-def ds9_targets(target='DS9:*'):
-    """
-    :param target: ds9 target template (default: all ds9 instances)
-
-    :rtype: list of available targets matching template (name and id)
-
-    To see all actively running ds9 instances for a given target, use the
+def ds9_targets(target='DS9:*', n=1024):
+    """ To see all actively running ds9 instances for a given target, use the
     ds9_targets() routine::
 
         >>> ds9_targets()
         ['DS9:foo1 838e29d4:42873', 'DS9:foo2 838e29d4:35739']
 
-    You then can pass one of the ids (or names) to the DS9() constructor.
+    You then can pass one of the ids (or names) to the :class:`DS9`
+    constructor.
+
+    Parameters
+    ----------
+    target : string, optional
+        ds9 target template (default: all ds9 instances)
+    n : int, optional
+        maximum number of targets to connect to (default: 1024)
+
+    Returns
+    -------
+    list of strings
+        list of available targets matching template (name and id)
     """
-    targets = xpa.xpaaccess(string_to_bytes(target), None, 1024)
+    targets = xpa.xpaaccess(string_to_bytes(target), None, n)
     return bytes_to_string(targets)
 
 
 def ds9_openlist(target='DS9:*', n=1024):
-    """
-    :param target: the ds9 target template (default: all ds9 instances)
-    :param n: maximum number of targets to connect to (default: 1024)
-
-    :rtype: list of connected ds9 objects
-
-    To open multiple instances of ds9, use the ds9_openlist() routine. Specify
-    the target template and an (optional) max target count, and the routine
-    returns a list of ds9 objects. For example, assuming 3 instances of ds9
-    are running with names foo1, foo2, foo3::
+    """To open multiple instances of ds9, use the :func:`ds9_openlist` routine.
+    Specify the target template and an max target count, and the routine
+    returns a list of ds9 objects. For example, assuming 3 instances of ds9 are
+    running with names foo1, foo2, foo3::
 
         >>> ds9list = ds9_openlist("foo*")
         >>> for d in ds9list:
@@ -353,14 +356,46 @@ def ds9_openlist(target='DS9:*', n=1024):
         DS9:foo2 a000104:56254
         DS9:foo3 a000104:56256
         >>> ds9list[1].set("file test.fits")
+
+    If two of the instances have the same name, for example foo1, foo1, foo2::
+
+        >>> ds9list = ds9_openlist("foo*")
+        >>> for d in ds9list:
+        ...     print d.target, d.id
+        ...
+        a000104:56249 a000104:56249
+        a000104:56254 a000104:56254
+        DS9:foo2 a000104:56256
+
+    Parameters
+    ----------
+    target : string, optional
+        ds9 target template (default: all ds9 instances)
+    n : int, optional
+        maximum number of targets to connect to (default: 1024)
+
+    Returns
+    -------
+    list
+        list of connected :class:`DS9` objects
     """
-    tlist = xpa.xpaaccess(string_to_bytes(target), None, n)
+    tlist = ds9_targets(target=target, n=n)
     if not tlist:
         raise ValueError('no active ds9 found for target: %s' % target)
     else:
+        # Reorganize the names and IDs
+        list_dict = defaultdict(list)
+        for item in tlist:
+            name, id_ = item.split(None, 1)
+            list_dict[name].append(id_)
+
         ds9list = []
-        for item in bytes_to_string(tlist):
-            ds9list.append(DS9(item.split()[0]))
+        for name, ids in list_dict.items():
+            if len(ids) == 1:
+                ds9list.append(DS9(name))
+            else:
+                for id_ in ids:
+                    ds9list.append(DS9(id_))
         return ds9list
 
 

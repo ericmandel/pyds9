@@ -1,3 +1,5 @@
+from collections import Counter
+import contextlib
 import random
 import subprocess as sp
 import time
@@ -25,23 +27,49 @@ type_mapping = parametrize('bitpix, dtype ',
 
 
 @pytest.fixture
-def ds9_title():
+def run_ds9s():
+    '''Returns a context manager that accepts a list of names and run a ds9
+    instance the for each name. On return from the yield, stop the instances'''
+
+    @contextlib.contextmanager
+    def _run_ds9s(*names):
+        processes = []
+        for name in names:
+            cmd = ['ds9', '-title', name]
+            processes.append(sp.Popen(cmd))
+        # wait for all the ds9 to come alive
+        while True:
+            targets = pyds9.ds9_targets()
+            if targets and len(targets) == len(processes):
+                break
+            time.sleep(0.1)
+
+        try:
+            yield
+        finally:
+            errors = []
+            for p in processes:
+                returncode = p.poll()
+                if returncode is None:
+                    p.kill()
+                    p.communicate()
+                elif returncode != 0:
+                    errors.append([cmd, returncode])
+            if errors:
+                msg = 'Command {} failed with error {}.'
+                msgs = [msg.format(' '.join(e[0]), e[1]) for e in errors]
+                raise RuntimeError('\n'.join(msgs))
+
+    return _run_ds9s
+
+
+@pytest.fixture
+def ds9_title(run_ds9s):
     '''Start a ds9 instance in a subprocess and returns its title'''
     name = 'test.{}'.format(random.randint(0, 10000))
-    cmd = ['ds9', '-title', name]
-    p = sp.Popen(cmd)
-    # wait for ds9 to come alive
-    while not pyds9.ds9_targets():
-        time.sleep(0.1)
 
-    yield name
-
-    returncode = p.poll()
-    if returncode is None:
-        p.kill()
-        p.communicate()
-    elif returncode != 0:
-        raise sp.CalledProcessError(returncode, ' '.join(cmd))
+    with run_ds9s(name):
+        yield name
 
 
 @pytest.fixture
@@ -72,11 +100,16 @@ def test_ds9_targets_empty():
     assert targets is None
 
 
-def test_ds9_targets(ds9_title):
+def test_ds9_targets(run_ds9s):
     '''ds9_targets returns open ds9 names'''
-    targets = pyds9.ds9_targets()
-    assert len(targets) == 1
-    assert ds9_title in targets[0]
+    names = ['test1', 'test1', 'test2']
+    with run_ds9s(*names):
+        targets = pyds9.ds9_targets()
+
+    assert len(targets) == len(names)
+    names = Counter(names)
+    for name, count in names.items():
+        assert sum(name in t for t in targets) == count
 
 
 @pytest.mark.xfail(raises=ValueError, reason='No target ds9 instance')
@@ -85,11 +118,16 @@ def test_ds9_openlist_empty():
     pyds9.ds9_openlist()
 
 
-def test_ds9_openlist(ds9_title):
+def test_ds9_openlist(run_ds9s):
     '''ds9_openlist returns running ds9 instances'''
-    ds9s = pyds9.ds9_openlist()
-    assert len(ds9s) == 1
-    assert ds9_title in ds9s[0].target
+    names = ['test1', 'test1', 'test2']
+    with run_ds9s(*names):
+        ds9s = pyds9.ds9_openlist()
+
+    target_is_id = [ds9.target == ds9.id for ds9 in ds9s]
+
+    assert len(ds9s) == len(names)
+    assert sum(target_is_id) == 2
 
 
 @parametrize('meth, n_warning',
