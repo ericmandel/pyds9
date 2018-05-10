@@ -39,8 +39,7 @@ environment:
 # - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 
 on_finish:
-  - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
-# - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 
 platform:
     -x64
@@ -82,4 +81,4 @@ matrix:
 test_script:
     # - "%CMD_IN_ENV% python setup.py test"
     # Give a try without setting the sdk from astropy-ci
-    - "python setup.py build --compiler gcc"
+    - "python setup.py build" # --compiler gcc"
