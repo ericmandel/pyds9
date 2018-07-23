@@ -14,8 +14,8 @@ The XPA messaging system (http://hea-www.harvard.edu/saord/xpa) provides
 seamless communication between many kinds of Unix programs, including Tcl/Tk
 programs such as ds9. The pyds9 module uses a Python interface to XPA to
 communicate with ds9. It supports communication with all of ds9's XPA access
-points. See http://hea-www.harvard.edu/saord/ds9/ref/xpa.html for more info
-on DS9's access points.
+points. See http://ds9.si.edu/doc/ref/xpa.html for more info on DS9's access
+points.
 
 pyds9 is available from GitHub:
 

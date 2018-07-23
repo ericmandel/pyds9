@@ -414,7 +414,7 @@ class DS9(object):
 
     DS9's xpa access points are documented in the reference manual:
 
-    - http://hea-www.harvard.edu/saord/ds9/ref/xpa.html
+    - http://ds9.si.edu/doc/ref/xpa.html
 
     In addition, a number of special methods are implemented to facilitate data
     access to/from python objects:
