@@ -15,19 +15,31 @@ environment:
       # Cython code, you can set CONDA_DEPENDENCIES=''
       CONDA_DEPENDENCIES: "Cython"
       PIP_DEPENDENCIES: "pytest-xvfb"
+      # setup Cygwin. Taken from
+      # https://github.com/DynamicDevices/mono/blob/master/appveyor.yml
+      CYG_ROOT: 'C:\cygwin'
+      CYG_MIRROR: http://cygwin.mirror.constant.com
+      CYG_CACHE: 'C:\cygwin\var\cache\setup'
+      MINGW_ROOT: 'C:\MinGW'
 
   matrix:
 
-      # We test Python 2.7 and 3.5 because 2.7 is the supported Python 2
-      # release of Astropy and Python 3.5 is the latest Python 3 release.
-
-      - PYTHON_VERSION: "2.7"
-        ASTROPY_VERSION: "stable"
-        NUMPY_VERSION: "stable"
+      # We test Python 2.7 and 3.6 because 2.7 is the supported Python 2
+      # release of Astropy and Python 3.6 is the latest Python 3 release.
 
       - PYTHON_VERSION: "3.6"
         ASTROPY_VERSION: "stable"
         NUMPY_VERSION: "stable"
+
+#              - PYTHON_VERSION: "2.7"
+#        ASTROPY_VERSION: "stable"
+#        NUMPY_VERSION: "stable"
+
+# init:
+# - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+
+on_finish:
+  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 
 platform:
     -x64
@@ -35,11 +47,38 @@ platform:
 install:
     - "git clone git://github.com/astropy/ci-helpers.git"
     - "powershell ci-helpers/appveyor/install-miniconda.ps1"
+    # set the path again (ci-helpers does this)
     - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
     - "activate test"
+    # Test that PATH is set correctly
+    - "conda --version"
+    - "python --version"
+    # setup Cygwin. Taken from
+    # https://github.com/DynamicDevices/mono/blob/master/appveyor.yml
+    # - 'echo Setting up Cygwin dependencies'
+    # - '%CYG_ROOT%\setup-x86.exe -qnNdO -R "%CYG_ROOT%" -s "%CYG_MIRROR%" -l "%CYG_CACHE%" -P autoconf -P automake -P bison -P gcc-core -P gcc-g++ -P mingw-runtime -P mingw-binutils -P mingw-gcc-core -P mingw-gcc-g++ -P mingw-pthreads -P mingw-w32api -P libtool -P make -P python -P gettext-devel -P gettext -P intltool -P libiconv -P pkg-config -P git -P wget -P curl > NUL' 
+    - 'echo Check Cygwin setup'
+    - '%CYG_ROOT%/bin/bash -lc "cygcheck -dc cygwin"'
+    - 'echo Done setting up Cygwin'
+    # - 'echo Add Cygwin to the path'
+    # - "SET PATH=%CYG_ROOT%\\bin;%PATH%"
+    - 'echo add MinGW to the path'
+    - "SET PATH=%MINGW_ROOT%\\bin;%PATH%"
+    - 'echo %PATH%'
+    - 'which gcc'
+    - 'echo %PWD%'
 
 # Not a .NET project, we build the package in the install step instead
 build: false
 
+# Update 2 does not exist, and Visual Studio 2015 is the default
+# os: Visual Studio 2015 Update 2
+
+matrix:
+    # no need to run all the test if a build fails
+    fast_finish: true
+
 test_script:
-    - "%CMD_IN_ENV% python setup.py test"
+    # - "%CMD_IN_ENV% python setup.py test"
+    # Give a try without setting the sdk from astropy-ci
+    - "python setup.py build" # --compiler gcc"
