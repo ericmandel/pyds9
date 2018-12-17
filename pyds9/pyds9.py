@@ -13,7 +13,6 @@ from __future__ import (print_function, absolute_import, division,
 
 from collections import defaultdict
 import contextlib
-from distutils.spawn import find_executable
 import sys
 import subprocess
 import shlex
@@ -23,6 +22,10 @@ import array
 import platform
 import textwrap as tw
 import warnings
+try:
+    from shutil import which
+except ImportError
+    from distutils.spawn import find_executable as which
 
 from . import xpa
 
@@ -68,8 +71,8 @@ def get_xpans_ds9():
     xpans_path = os.pathsep.join([pyds9_dir, xpa_dir, xpans_path])
 
     # find the executables
-    xpans = find_executable('xpans', path=xpans_path)
-    ds9 = [find_executable('ds9')]
+    xpans = which('xpans', path=xpans_path)
+    ds9 = [which('ds9')]
 
     # warning message in case ds9 and/or xpans is not found
     ds9_warning = ("Can't locate DS9 executable. Please add the DS9 directory"
