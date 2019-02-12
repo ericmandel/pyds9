@@ -123,7 +123,7 @@ def test_ds9_openlist_empty():
 
 def test_ds9_openlist(run_ds9s):
     '''ds9_openlist returns running ds9 instances'''
-    names = ['test1', 'test1', 'test2']
+    names = ['test4', 'test5', 'test6']
     with run_ds9s(*names):
         ds9s = pyds9.ds9_openlist()
 
