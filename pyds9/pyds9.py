@@ -24,7 +24,7 @@ import textwrap as tw
 import warnings
 try:
     from shutil import which
-except ImportError
+except ImportError:
     from distutils.spawn import find_executable as which
 
 from . import xpa
