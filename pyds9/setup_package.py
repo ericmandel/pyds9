@@ -55,7 +55,7 @@ def get_extensions():
             cfg['extra_compile_args'].extend([
                 '-Wno-declaration-after-statement',
                 '-Wno-unused-variable', '-Wno-parentheses',
-                '-Wno-uninitialized', '-Wno-format',
+                '-Wno-uninitialized', '-Wno-format', '-Wno-format-security',
                 '-Wno-strict-prototypes', '-Wno-unused', '-Wno-comments',
                 '-Wno-switch', '-Wno-strict-aliasing', '-Wno-return-type',
                 '-Wno-address', '-Wno-unused-result'
