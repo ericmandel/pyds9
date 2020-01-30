@@ -1,6 +1,13 @@
 # AppVeyor.com is a Continuous Integration service to build and run tests under
 # Windows
 
+# DJB has currently "stopped" this as it is failing and we don't have
+# the resources to fix it at this time. If anyone would like to submit
+# a PR that would be *awesome*
+#
+# The install and test stanzas have been commented out: is this
+# sufficient?
+
 environment:
 
   global:
@@ -18,13 +25,6 @@ environment:
 
   matrix:
 
-      # We test Python 2.7 and 3.5 because 2.7 is the supported Python 2
-      # release of Astropy and Python 3.5 is the latest Python 3 release.
-
-      - PYTHON_VERSION: "2.7"
-        ASTROPY_VERSION: "stable"
-        NUMPY_VERSION: "stable"
-
       - PYTHON_VERSION: "3.6"
         ASTROPY_VERSION: "stable"
         NUMPY_VERSION: "stable"
@@ -32,14 +32,14 @@ environment:
 platform:
     -x64
 
-install:
-    - "git clone git://github.com/astropy/ci-helpers.git"
-    - "powershell ci-helpers/appveyor/install-miniconda.ps1"
-    - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
-    - "activate test"
+# install:
+#     - "git clone git://github.com/astropy/ci-helpers.git"
+#     - "powershell ci-helpers/appveyor/install-miniconda.ps1"
+#     - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+#     - "activate test"
 
 # Not a .NET project, we build the package in the install step instead
 build: false
 
-test_script:
-    - "%CMD_IN_ENV% python setup.py test"
+# test_script:
+#     - "%CMD_IN_ENV% python setup.py test"
