@@ -2,7 +2,12 @@
 # by importing them here in conftest.py they are discoverable by py.test
 # no matter how it is invoked within the source tree.
 
-from astropy.tests.pytest_plugins import *
+# As of AstroPy 3.0 the plugins are made available when
+# AstroPy is installed.
+#
+from astropy.version import version as astropy_version
+if astropy_version < '3.0':
+    from astropy.tests.pytest_plugins import *
 
 import py.path
 import pytest
