@@ -28,7 +28,9 @@ env:
         - ASTROPY_VERSION=stable
         - MAIN_CMD='python setup.py'
         - SETUP_CMD='test'
-        - PIP_DEPENDENCIES='pytest-xvfb'
+
+        # Does it make sense to add astropy here?
+        - PIP_DEPENDENCIES='astropy pytest-astropy pytest-xvfb'
 
         # For this package-template, we include examples of Cython modules,
         # so Cython is required for testing. If your package does not include
@@ -53,8 +55,10 @@ matrix:
     include:
 
         # Try MacOS X
+        # - os: osx
+        #   env: SETUP_CMD='test'
         - os: osx
-          env: SETUP_CMD='test'
+          env: PYTHON_VERSION=3.7
 
         # Do a coverage test in Python 3.6
         # - python: 3.6
@@ -62,17 +66,27 @@ matrix:
 
         # Check for sphinx doc build warnings - we do this first because it
         # may run for a long time
-        - env: SETUP_CMD='build_docs -w' PYDS9_NOXPANS=true
+        # - env: SETUP_CMD='build_docs -w' PYDS9_NOXPANS=true
 
-        # Try older numpy versions
-        - env: PYTHON_VERSION=3.6 NUMPY_VERSION=1.14
+        # Explicit tests of version combinations:
+        # Note that AstroPy requires NumPy 1.16 or later
+        #
+        - env: PYTHON_VERSION=3.5 ASTROPY_VERSION=3.2 NUMPY_VERSION=1.15
+        - env: PYTHON_VERSION=3.6 ASTROPY_VERSION=3.2 NUMPY_VERSION=1.15
+        - env: PYTHON_VERSION=3.7 ASTROPY_VERSION=3.2 NUMPY_VERSION=1.15
+
+        - env: PYTHON_VERSION=3.6 ASTROPY_VERSION=4.0 NUMPY_VERSION=1.18
+
+        # This is the "latest" version (Feb 2020)
+        #
+        # - env: PYTHON_VERSION=3.7 ASTROPY_VERSION=4.0 NUMPY_VERSION=1.18
 
         # Try without cython
-        - env: PYTHON_VERSION=3.6 CONDA_DEPENDENCIES='numpy ds9'
-               SETUP_CMD='egg_info'
+        # - env: PYTHON_VERSION=3.6 CONDA_DEPENDENCIES='numpy ds9'
+        #        SETUP_CMD='egg_info'
 
         # Try with pyfits
-        - env: PIP_DEPENDENCIES='pytest-xvfb pyfits'
+        # - env: PIP_DEPENDENCIES='pytest-xvfb pyfits'
 
         # Try with sphinx
         # - env: PYTHON_VERSION=3.6 CONDA_DEPENDENCIES='sphinx'
