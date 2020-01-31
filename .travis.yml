@@ -120,7 +120,7 @@ after_success:
 notifications:
   email:
     # NOTE: Pull Request builds do not trigger email notifications
-    recipients:
-      - franz.bergesund@gmail.com
+    # recipients:
+    #   - franz.bergesund@gmail.com
     on_success: change
     on_failure: always
