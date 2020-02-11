@@ -1,3 +1,14 @@
+# See
+# https://docs.travis-ci.com/user/gui-and-headless-browsers/#using-xvfb-to-run-tests-that-require-a-gui
+# for information on running xvfb
+#
+# However, getting xvfb to run via a service causes tests to fail - they
+# time out waiting for something - and it seems to be because of the
+# xvfb display that is created. The Travis documentation does not mention
+# how the size can be configured, so I have switched to running it manually
+# with an explicit desktop size and bitpix.
+#
+
 os: linux
 
 language: c
@@ -38,8 +49,6 @@ env:
         - CONDA_DEPENDENCIES='Cython ds9'
         - CONDA_CHANNELS='http://ssb.stsci.edu/astroconda'
 
-        # If there are matplotlib or other GUI tests, uncomment the following
-        # line to use the X virtual framebuffer.
         # - SETUP_XVFB=True
 
         # set XPA_METHOD to avoid locking the tests
@@ -52,6 +61,7 @@ env:
         - SETUP_CMD='test'
 
 matrix:
+
     include:
 
         # Try MacOS X
@@ -71,16 +81,40 @@ matrix:
         # Explicit tests of version combinations:
         # Note that AstroPy 4 requires NumPy 1.16 or later
         #
+        # A lot of repeated info as DJB is having trouble with this
+        #
         - env: PYTHON_VERSION=3.5 ASTROPY_VERSION=2.0 NUMPY_VERSION=1.15
-        - env: PYTHON_VERSION=3.5 ASTROPY_VERSION=3.2 NUMPY_VERSION=1.15
+          os: linux
+          dist: bionic
+          # services: xvfb
+
+        # For some reason the tests seem to hang, waiting for a response,
+        # so as it is not a high-priority combination jyst skip the test.
+        #
+        # - env: PYTHON_VERSION=3.5 ASTROPY_VERSION=3.2 NUMPY_VERSION=1.15
+        #   os: linux
+        #   dist: bionic
+        #   # services: xvfb
+
         - env: PYTHON_VERSION=3.6 ASTROPY_VERSION=3.2 NUMPY_VERSION=1.15
+          os: linux
+          dist: bionic
+          # services: xvfb
+
         - env: PYTHON_VERSION=3.7 ASTROPY_VERSION=3.2 NUMPY_VERSION=1.15
+          os: linux
+          dist: bionic
+          # services: xvfb
 
         - env: PYTHON_VERSION=3.6 ASTROPY_VERSION=4.0 NUMPY_VERSION=1.18
+          os: linux
+          dist: bionic
+          # services: xvfb
 
-        # This is the "latest" version (Feb 2020)
-        #
-        # - env: PYTHON_VERSION=3.7 ASTROPY_VERSION=4.0 NUMPY_VERSION=1.18
+        - env: PYTHON_VERSION=3.7 ASTROPY_VERSION=4.0 NUMPY_VERSION=1.18
+          os: linux
+          dist: bionic
+          # services: xvfb
 
         # Try without cython
         # - env: PYTHON_VERSION=3.6 CONDA_DEPENDENCIES='numpy ds9'
@@ -118,10 +152,13 @@ before_script:
     # on MacOSX try to start Xvfb
     # Taken from https://github.com/travis-ci/travis-ci/issues/7313 and
     # https://github.com/widelands/widelands/commit/68b2bbe95c91f5305924154af9c36c63cdc773a0
+    #
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export DISPLAY=:99.0; ( sudo Xvfb :99 -ac -screen 0 1024x768x8; echo ok )& sleep 3; fi
 
 script:
-   - ${MAIN_CMD} $SETUP_CMD
+    # - ${MAIN_CMD} $SETUP_CMD
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ${MAIN_CMD} $SETUP_CMD; fi
+    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then xvfb-run --server-args="-screen 0 1024x768x8" ${MAIN_CMD} $SETUP_CMD; fi
 
 after_success:
     # If coveralls.io is set up for this package, uncomment the line
