@@ -1,5 +1,11 @@
 Changelog for pyds9
 
+version 1.9     TBD
+		pyds9 only supports Python 3.5 or later.
+		Remove support for pyfits: the set_pyfits and get_pyfits
+	        methods have been removed and set_fits/get_fits should be
+	        used instead.
+
 version github	September 24, 2015
 		remove ds9.py
 
