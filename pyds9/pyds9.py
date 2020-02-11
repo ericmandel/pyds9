@@ -29,9 +29,7 @@ except ImportError:
 
 from . import xpa
 
-# for now require six, but this will be removed soon
-import six
-from six import BytesIO
+from io import BytesIO
 from astropy.io import fits
 import numpy
 
@@ -219,25 +217,22 @@ def string_to_bytes(string):
 
     :rtypes: (list of) byte string(s)
     """
-    if six.PY3:
-        if isinstance(string, str):
-            return string.encode()
-        elif isinstance(string, bytes):
-            return string
-        else:
-            try:
-                out = []
-                for s in string:
-                    if isinstance(s, str):
-                        out.append(s.decode())
-                    else:
-                        out.append(s)
-                return out
-            except TypeError:
-                # non iterable
-                return string
-    else:
+    if isinstance(string, str):
+        return string.encode()
+    elif isinstance(string, bytes):
         return string
+    else:
+        try:
+            out = []
+            for s in string:
+                if isinstance(s, str):
+                    out.append(s.decode())
+                else:
+                    out.append(s)
+            return out
+        except TypeError:
+            # non iterable
+            return string
 
 
 def bytes_to_string(byte):
@@ -247,25 +242,22 @@ def bytes_to_string(byte):
 
     :rtypes: string or list of strings
     """
-    if six.PY3:
-        if isinstance(byte, bytes):
-            return byte.decode()
-        elif isinstance(byte, str):
-            return byte
-        else:
-            try:
-                out = []
-                for b in byte:
-                    if isinstance(b, bytes):
-                        out.append(b.decode())
-                    else:
-                        out.append(b)
-                return out
-            except TypeError:
-                # non iterable
-                return byte
-    else:
+    if isinstance(byte, bytes):
+        return byte.decode()
+    elif isinstance(byte, str):
         return byte
+    else:
+        try:
+            out = []
+            for b in byte:
+                if isinstance(b, bytes):
+                    out.append(b.decode())
+                else:
+                    out.append(b)
+            return out
+        except TypeError:
+            # non iterable
+            return byte
 
 
 # if xpans is not running, start it up
@@ -675,7 +667,7 @@ class DS9(object):
 
         Returns
         -------
-        :class:`six.BytesIO`
+        :class:`io.BytesIO`
             file-like object containing the FITS data
         '''
         self._selftest()
