@@ -35,7 +35,7 @@ import numpy
 
 
 # pyds9 version
-__version__ = '1.8.1'
+__version__ = '1.9.dev'
 
 __all__ = ['DS9', 'ds9', 'ds9_openlist', 'ds9_targets', 'ds9_xpans',
            'ds9Globals']
