@@ -1,10 +1,11 @@
 # Python connection to ds9 via XPA
 
 [![Build Status](https://travis-ci.org/ericmandel/pyds9.svg?branch=master)](https://travis-ci.org/ericmandel/pyds9)
+![Python version](https://img.shields.io/badge/Python-3.5,3.6,3.7-green.svg?style=flat)
 
-The [XPA messaging system](https://github.com/ericmandel/xpa) provides 
+The [XPA messaging system](https://github.com/ericmandel/xpa) provides
 seamless communication between many kinds of Unix programs, including Tcl/Tk
-programs such as ds9. The ``pyds9`` module uses a Python interface to XPA to 
+programs such as ds9. The ``pyds9`` module uses a Python interface to XPA to
 communicate with ds9. It supports communication with all of ds9's XPA access
 points.
 
@@ -21,7 +22,7 @@ command can be used.
 WARNING: due to some interaction between
 [``astropy_helper``](https://github.com/astropy/astropy-helpers) and
 [``sphinx``](http://www.sphinx-doc.org), the command might fail with a
-``RecursioError`` if sphinx>=1.6 is present.
+``RecursionError`` if sphinx>=1.6 is present.
 
 Alternatively, you can clone the git repository or download and unpack the [zip
 file](https://github.com/ericmandel/pyds9/archive/master.zip). Then ``cd`` into
@@ -53,7 +54,7 @@ directory you can test basic ds9 functionalities running the function:
     > pyds9.test()
 
 
-The setup.py install will build and install both the XPA shared library and 
+The setup.py install will build and install both the XPA shared library and
 the xpans name server. By default, the code generated for the shared object
 will match the address size of the host machine, i.e. 32-bit or 64-bit
 as the case may be. But on 64-bit Intel machines, the XPA build also will check
@@ -70,4 +71,4 @@ To report a bug, ask for a new feature, or request support, please contact us at
 https://github.com/ericmandel/pyds9/issues
 
 
-Eric Mandel and Francesco Montesano
+The PyDS9 team
