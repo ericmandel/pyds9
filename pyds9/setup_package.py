@@ -150,5 +150,6 @@ def post_build_ext_hook(cmd):
         sp.check_call(['make', 'distclean'])
 
 
+# Can this be removed?
 def requires_2to3():
     return False
