@@ -69,8 +69,9 @@ matrix:
         # - env: SETUP_CMD='build_docs -w' PYDS9_NOXPANS=true
 
         # Explicit tests of version combinations:
-        # Note that AstroPy requires NumPy 1.16 or later
+        # Note that AstroPy 4 requires NumPy 1.16 or later
         #
+        - env: PYTHON_VERSION=3.5 ASTROPY_VERSION=2.0 NUMPY_VERSION=1.15
         - env: PYTHON_VERSION=3.5 ASTROPY_VERSION=3.2 NUMPY_VERSION=1.15
         - env: PYTHON_VERSION=3.6 ASTROPY_VERSION=3.2 NUMPY_VERSION=1.15
         - env: PYTHON_VERSION=3.7 ASTROPY_VERSION=3.2 NUMPY_VERSION=1.15
