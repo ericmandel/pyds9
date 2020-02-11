@@ -29,8 +29,9 @@ except ImportError:
 
 from . import xpa
 
-from astropy.extern import six
-from astropy.extern.six import BytesIO
+# for now require six, but this will be removed soon
+import six
+from six import BytesIO
 from astropy.io import fits
 import numpy
 
