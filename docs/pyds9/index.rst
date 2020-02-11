@@ -56,7 +56,7 @@ The DS9 Class
 -------------
 
 .. autoclass:: DS9
-   :members: __init__, get, set, info, access, get_pyfits, set_pyfits, get_arr2np, set_np2arr
+   :members: __init__, get, set, info, access, get_fits, set_fits, get_arr2np, set_np2arr
    :noindex:
 
 Auxiliary Routines

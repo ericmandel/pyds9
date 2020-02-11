@@ -3,7 +3,7 @@ ds9.py connects python and ds9 via the xpa messaging system:
 
 - The ds9 class constructor connects to a single instance of a running ds9.
 - The ds9 object supports 'set' and 'get' methods to communicate with ds9.
-- Send/retrieve numpy arrays and pyfits (or astropy) hdulists to/from ds9.
+- Send/retrieve numpy arrays and astropy hdulists to/from ds9.
 - The ds9_targets() function lists ds9 programs running on your system.
 - The ds9_openlist() function connects to a list of running ds9 instances.
 
@@ -116,18 +116,6 @@ ds9Globals['bin_cmd'] = ["array",
                          "png",
                          "rgbarray", "rgbcube", "rgbimage",
                          "tiff"]
-
-# load pyfits, if available
-try:
-    import pyfits
-    if pyfits.__version__ >= '2.2':
-        ds9Globals["pyfits"] = True
-    else:
-        warnings.warn('Pytest<2.2 is not supported')
-        ds9Globals["pyfits"] = False
-except ImportError:
-    ds9Globals["pyfits"] = False
-
 
 # numpy-dependent routines
 def _bp2np(bitpix):
@@ -416,8 +404,6 @@ class DS9(object):
     - :meth:`set_np2arr`: send a numpy array to ds9 for display
     - :meth:`get_fits`: retrieve a FITS image into an astropy  hdu list
     - :meth:`set_fits`: send an astropy hdu list to ds9 for display
-    - :meth:`get_pyfits`: retrieve a FITS image into a pyfits hdu list
-    - :meth:`set_pyfits`: send a pyfits hdu list to ds9 for display
     """
 
     # access points that do not get trailing cr stripped from them
@@ -676,7 +662,7 @@ class DS9(object):
 
         Parameters
         ----------
-        hdul : :class:`HDUList` (astropy or pyfits)
+        hdul : :class:`astropy.io.fits.HDUList`
             FITS file to send
 
         Returns
@@ -742,94 +728,6 @@ class DS9(object):
         """
         if not isinstance(hdul, fits.HDUList):
             raise ValueError('The input must be an astropy HDUList')
-        return self._hdulist_to_ds9_fits(hdul)
-
-    def get_pyfits(self):
-        """Retrieve data from ds9 as an pyfits FITS.
-
-        Examples
-        --------
-
-        >>> hdul = d.get_pyfits()
-        >>> hdul.info()
-        Filename: StringIO
-        No.    Name         Type      Cards   Dimensions   Format
-        0    PRIMARY     PrimaryHDU      24  (1024, 1024)  float32
-        >>> data = hdul[0].data
-        >>> data.shape
-        (1024, 1024)
-
-        Returns
-        -------
-        :class:`pyfits.HDUList`
-            FITS object
-
-        Raises
-        ------
-        AttributeError
-            if pyfits is not available on the system
-        """
-        if not ds9Globals["pyfits"]:
-            warnings.warn('"get_pyfits" method should be used only to'
-                          ' retrieve from ds9 fits as "pyfits" HDUList.'
-                          ' Modify your code to use ``get_fits`` to get'
-                          ' "astropy" HDUList or, if you really want to use'
-                          ' "pyfits", install it. In the future this warning'
-                          ' will turn into an exception')
-            return self.get_fits()
-            # TODO: remove the above warning and make this method available
-            # only if pyfits is installed
-            # raise AttributeError("'DS9' object has not attribute"
-            #                      " 'get_pyfits'. The method is available"
-            #                      " only"
-            #                      " if the package 'pyfits' is imported and"
-            #                      " its version is >=2.2")
-        return pyfits.open(self._ds9_fits_to_bytes())
-
-    def set_pyfits(self, hdul):
-        """Display a pyfits FITS in ds9.
-
-        Examples
-        --------
-
-        >>> d.set_pyfits(nhdul)
-        1
-
-        Parameters
-        ----------
-        hdul : :class:`pyfits.HDUList`
-            FITS object to display
-
-        Returns
-        -------
-        int
-            1 indicates that ds9 was contacted successfully, while a return
-            value of 0 indicates a failure.
-
-        Raises
-        ------
-        AttributeError
-            if pyfits is not available on the system
-        ValueError
-            if the input is not a pyfits HDUList
-        """
-        if not ds9Globals["pyfits"]:
-            warnings.warn('"set_pyfits" method should be used only to'
-                          ' send to ds9 fits as "pyfits" HDUList.'
-                          ' Modify your code to use ``set_fits`` to set'
-                          ' "astropy" HDUList or, if you really want to use'
-                          ' "pyfits", install it. In the future this warning'
-                          ' will turn into an exception')
-            return self.set_fits(hdul)
-            # TODO: remove the above warning and make this method available
-            # only if pyfits is installed
-            # raise AttributeError("'DS9' object has not attribute"
-            #                      " 'set_pyfits'. The method is available
-            #                      " only"
-            #                      " if the package 'pyfits' is imported and"
-            #                      " its version is >=2.2")
-        if not isinstance(hdul, pyfits.HDUList):
-            raise ValueError('The input must be a pyfits HDUList')
         return self._hdulist_to_ds9_fits(hdul)
 
     def get_arr2np(self):
@@ -1009,35 +907,29 @@ def test():
               (d.get("file"), d.get("fits width"),
                d.get("fits height"), d.get("fits bitpix")))
 
-        if ds9Globals["numpy"]:
-            print("\ntesting numpy support ...")
-            a = d.get_arr2np()
-            print("reading nparray: shape=%s dtype=%s" % (a.shape, a.dtype))
-            print(a)
+        print("\ntesting numpy support ...")
+        a = d.get_arr2np()
+        print("reading nparray: shape=%s dtype=%s" % (a.shape, a.dtype))
+        print(a)
 
-            print("writing modified nparray ...")
-            a[0:3, 0:3] = 8
-            a[12:15, 12:15] = 9
-            d.set_np2arr(a)
+        print("writing modified nparray ...")
+        a[0:3, 0:3] = 8
+        a[12:15, 12:15] = 9
+        d.set_np2arr(a)
 
-            a = d.get_arr2np()
-            print("re-reading nparray: shape=%s dtype=%s" % (a.shape, a.dtype))
-            print(a)
-        else:
-            print("\nskipping numpy test ...")
+        a = d.get_arr2np()
+        print("re-reading nparray: shape=%s dtype=%s" % (a.shape, a.dtype))
+        print(a)
 
-        if ds9Globals["pyfits"]:
-            print("\ntesting pyfits support (%d) ..." % ds9Globals["pyfits"])
-            hdul = d.get_pyfits()
-            print(hdul.info())
-            i = hdul[0].data
-            print("reading back pyfits: shape=%s dtype=%s" % (i.shape,
-                                                              i.dtype))
-            print(i)
-        else:
-            print("\nskipping pyfits test ...")
+        print("\ntesting fits support ...")
+        hdul = d.get_fits()
+        print(hdul.info())
+        i = hdul[0].data
+        print("reading back fits: shape=%s dtype=%s" % (i.shape,
+                                                        i.dtype))
+        print(i)
     else:
-        print("could not find " + tfits + " ... skipping numpy,pyfits tests")
+        print("could not find " + tfits + " ... skipping numpy,astropy tests")
 
     stime = 7
     print("sleeping for " + str(stime) + " seconds ...")

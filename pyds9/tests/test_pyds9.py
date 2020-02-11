@@ -135,19 +135,16 @@ def test_ds9_openlist(run_ds9s):
     assert sum(target_is_id) == 2
 
 
-@parametrize('meth, n_warning',
-             [('get_fits', 0), ('get_pyfits', 1)])
-def test_ds9_get_fits(monkeypatch, ds9_obj, test_fits, meth, n_warning):
+def test_ds9_get_fits(monkeypatch, ds9_obj, test_fits):
     '''get a fits file as an astropy fits object'''
-    monkeypatch.setitem(pyds9.ds9Globals, 'pyfits', False)
 
     ds9_obj.set('file {}'.format(test_fits))
 
     with pytest.warns(None) as warn_records:
-        hdul_from_ds9 = getattr(ds9_obj, meth)()
+        hdul_from_ds9 = ds9_obj.get_fits()
 
     assert isinstance(hdul_from_ds9, fits.HDUList)
-    assert len(warn_records) == n_warning
+    assert len(warn_records) == 0
 
     diff = fits.FITSDiff(test_fits.strpath, hdul_from_ds9,
                          ignore_comments=['*', ])
@@ -155,25 +152,22 @@ def test_ds9_get_fits(monkeypatch, ds9_obj, test_fits, meth, n_warning):
     assert diff.identical
 
 
+# TODO: change this test so that it passes when an error is raised
 @pytest.mark.xfail(raises=ValueError, reason='Not an astropy hdu')
 def test_ds9_set_fits_fail(ds9_obj):
     '''set_fits wants an astropy HDUList'''
     ds9_obj.set_fits('random_type')
 
 
-@parametrize('meth, n_warning',
-             [('set_fits', 0), ('set_pyfits', 1)])
-def test_ds9_set_fits(monkeypatch, tmpdir, ds9_obj, test_fits,
-                      meth, n_warning):
+def test_ds9_set_fits(monkeypatch, tmpdir, ds9_obj, test_fits):
     '''Set the astropy fits'''
-    monkeypatch.setitem(pyds9.ds9Globals, 'pyfits', False)
 
     with fits.open(test_fits.strpath) as hdul,\
             pytest.warns(None) as warn_records:
-        success = getattr(ds9_obj, meth)(hdul)
+        success = ds9_obj.set_fits(hdul)
 
     assert success == 1
-    assert len(warn_records) == n_warning
+    assert len(warn_records) == 0
 
     out_fits = tmpdir.join('out.fits')
     with out_fits.open('w') as f:
@@ -181,52 +175,6 @@ def test_ds9_set_fits(monkeypatch, tmpdir, ds9_obj, test_fits,
 
     diff = fits.FITSDiff(test_fits.strpath, out_fits.strpath,
                          ignore_comments=['*', ])
-
-    assert diff.identical
-
-
-def test_ds9_get_pyfits(ds9_obj, test_fits):
-    'use pytest to get fits'
-    pyfits = pytest.importorskip('pyfits', minversion='0.2')
-
-    ds9_obj.set('file {}'.format(test_fits))
-
-    with pytest.warns(None) as warn_records:
-        hdul_from_ds9 = ds9_obj.get_pyfits()
-
-    assert isinstance(hdul_from_ds9, pyfits.HDUList)
-    assert len(warn_records) == 0
-
-    diff = pyfits.FITSDiff(test_fits.strpath, hdul_from_ds9,
-                           ignore_comments=['*', ])
-
-    assert diff.identical
-
-
-@pytest.mark.xfail(raises=ValueError, reason='Not an astropy hdu')
-def test_ds9_set_pyfits_fail(ds9_obj):
-    '''set_fits wants an astropy HDUList'''
-    pytest.importorskip('pyfits', minversion='0.2')
-    ds9_obj.set_pyfits('random_type')
-
-
-def test_ds9_set_pyfits(tmpdir, ds9_obj, test_fits):
-    '''Set the astropy fits'''
-    pyfits = pytest.importorskip('pyfits', minversion='0.2')
-
-    with pyfits.open(test_fits.strpath) as hdul,\
-            pytest.warns(None) as warn_records:
-        success = ds9_obj.set_pyfits(hdul)
-
-    assert success == 1
-    assert len(warn_records) == 0
-
-    out_fits = tmpdir.join('out.fits')
-    with out_fits.open('w') as f:
-        sp.call(['xpaget', ds9_obj.target, 'fits'], stdout=f)
-
-    diff = pyfits.FITSDiff(test_fits.strpath, out_fits.strpath,
-                           ignore_comments=['*', ])
 
     assert diff.identical
 
@@ -247,6 +195,7 @@ def test_get_arr2np(ds9_obj, test_data_dir, fits_name):
     np.testing.assert_array_equal(arr, fits_data)
 
 
+# TODO: change this test so that it passes when an error is raised
 @pytest.mark.xfail(raises=ValueError,
                    reason='Not a numpy array or not valid shape')
 @parametrize('input_', ['random_type', np.arange(5)])
@@ -273,6 +222,8 @@ def test_ds9_set_np2arr(tmpdir, ds9_obj, test_data_dir, fits_name):
     np.testing.assert_array_equal(fits_data, fits.getdata(out_fits.strpath))
 
 
+# TODO: split into two tests and check that an error is raised when
+#       expected
 @parametrize('action, args',
              [(getattr, ()),
               pytest.param(setattr, (42, ), marks=xfail_attribute_error)
