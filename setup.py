@@ -23,7 +23,7 @@ conf = ConfigParser()
 conf.read(['setup.cfg'])
 metadata = dict(conf.items('metadata'))
 
-PACKAGENAME = metadata.get('package_name', 'pyds9')
+PACKAGENAME = metadata.get('name', 'pyds9')
 DESCRIPTION = metadata.get('description', 'Python connection to ds9 via XPA')
 AUTHOR = metadata.get('author', '')
 AUTHOR_EMAIL = metadata.get('author_email', '')
@@ -39,23 +39,13 @@ LONG_DESCRIPTION = package.__doc__
 # to get from other parts of the setup infrastructure
 builtins._ASTROPY_PACKAGE_NAME_ = PACKAGENAME
 
-# VERSION should be PEP386 compatible (http://www.python.org/dev/peps/pep-0386)
-VERSION = '1.9.dev'
-
-# Indicates if this version is a release version
-RELEASE = 'dev' not in VERSION
-
-if not RELEASE:
-    VERSION += get_git_devstr(False)
-
 # Populate the dict of setup command overrides; this should be done before
 # invoking any other functionality from distutils since it can potentially
 # modify distutils' behavior.
-cmdclassd = register_commands(PACKAGENAME, VERSION, RELEASE)
+cmdclassd = register_commands()
 
 # Freeze build information in version.py
-generate_version_py(PACKAGENAME, VERSION, RELEASE,
-                    get_debug_option(PACKAGENAME))
+generate_version_py(debug=get_debug_option(PACKAGENAME))
 
 # Treat everything in scripts except README.rst as a script to be installed
 scripts = [fname for fname in glob.glob(os.path.join('scripts', '*'))
@@ -95,9 +85,7 @@ package_info['package_data'][PACKAGENAME].extend(c_files)
 # ``setup``, since these are now deprecated. See this link for more details:
 # https://groups.google.com/forum/#!topic/astropy-dev/urYO8ckB2uM
 
-setup(name=PACKAGENAME,
-      version=VERSION,
-      description=DESCRIPTION,
+setup(description=DESCRIPTION,
       scripts=scripts,
       setup_requires=['numpy'],
       install_requires=['astropy', 'numpy'],
