@@ -112,6 +112,16 @@ def XPAAccess(xpa, target, paramlist, mode, names, messages, n):
 xpa_n = 1024
 
 
+def to_string(buf, size=-1, strip=True):
+    """Wrap conversion of ctypes string to Python"""
+
+    s = ctypes.string_at(buf, size).decode('utf-8')
+    if strip:
+        s = s.strip()
+
+    return s
+
+
 def xpaget(target, plist=None, n=xpa_n):
     buf_t = c_byte_p*n
     bufs = buf_t()
@@ -129,7 +139,7 @@ def xpaget(target, plist=None, n=xpa_n):
                 buf.append(cur)
         for i in range(got):
             if errs[i]:
-                errmsg += ctypes.string_at(errs[i]).strip() + '\n'
+                errmsg += to_string(errs[i]) + '\n'
     else:
         buf = None
     _freebufs(bufs, n)
@@ -153,12 +163,7 @@ def xpaset(target, plist=None, buf=None, blen=-1, n=xpa_n):
     got = XPASet(None, target, plist, None, buf, blen, names, errs, n)
     for i in range(got):
         if errs[i]:
-            as_string = ctypes.string_at(errs[i]).strip()
-            try:
-                as_string = as_string.decode()
-            except AttributeError:  # it's already a string
-                pass
-            errmsg += as_string + '\n'
+            errmsg += to_string(errs[i]) + '\n'
     _freebufs(names, n)
     _freebufs(errs, n)
     if errmsg:
@@ -174,7 +179,7 @@ def xpainfo(target, plist=None, n=xpa_n):
     got = XPAInfo(None, target, plist, None, names, errs, n)
     for i in range(got):
         if errs[i]:
-            errmsg += ctypes.string_at(errs[i]).strip() + '\n'
+            errmsg += to_string(errs[i]) + '\n'
     _freebufs(names, n)
     _freebufs(errs, n)
     if errmsg:
@@ -192,11 +197,10 @@ def xpaaccess(target, plist=None, n=xpa_n):
         buf = []
         for i in range(got):
             if names[i]:
-                cur = ctypes.string_at(names[i]).strip()
-                buf.append(cur)
+                buf.append(to_string(names[i]))
         for i in range(got):
             if errs[i]:
-                errmsg += ctypes.string_at(errs[i]).strip() + '\n'
+                errmsg += to_string(errs[i]) + '\n'
     else:
         buf = None
     _freebufs(names, n)

@@ -12,10 +12,6 @@ from pyds9 import pyds9
 
 parametrize = pytest.mark.parametrize
 
-xfail_value_error = pytest.mark.xfail(raises=ValueError, reason='Wrong input')
-xfail_attribute_error = pytest.mark.xfail(raises=AttributeError,
-                                          reason='The attribute is readonly')
-
 type_mapping = parametrize('bitpix, dtype ',
                            [(8, np.dtype(np.uint8)),
                             (16, np.dtype(np.int16)),
@@ -23,18 +19,17 @@ type_mapping = parametrize('bitpix, dtype ',
                             (64, np.dtype(np.int64)),
                             (-32, np.dtype(np.float32)),
                             (-64, np.dtype(np.float64)),
-                            (-16, np.dtype(np.uint16)),
-                            pytest.param(43, np.dtype(str),
-                                         marks=xfail_value_error)
+                            (-16, np.dtype(np.uint16))
                             ])
+
+# Hopefully DS9 will never support this particular command...
+INVALID_XPA_METHOD = 'made-up-command'
 
 
 @pytest.fixture
 def run_ds9s():
     '''Returns a context manager that accepts a list of names and run a ds9
     instance the for each name. On return from the yield, stop the instances'''
-
-    pytest.skip()
 
     @contextlib.contextmanager
     def _run_ds9s(*names):
@@ -99,6 +94,22 @@ def test_np2bp(dtype, bitpix):
     assert output == bitpix
 
 
+def test_bp2np_fail():
+    """Test from bitpix to dtype: invalid bitpix"""
+
+    with pytest.raises(ValueError,
+                       match='unsupported bitpix: 43'):
+        pyds9._bp2np(43)
+
+
+def test_np2bp_fail():
+    """Test from dtype to bitpix: invalid dtype"""
+
+    with pytest.raises(ValueError,
+                       match='unsupported dtype'):
+        pyds9._np2bp(np.dtype(str))
+
+
 def test_ds9_targets_empty():
     '''If no ds9 instance is running, ds9_targets returns None'''
     targets = pyds9.ds9_targets()
@@ -117,10 +128,11 @@ def test_ds9_targets(run_ds9s):
         assert sum(name in t for t in targets) == count
 
 
-@pytest.mark.xfail(raises=ValueError, reason='No target ds9 instance')
 def test_ds9_openlist_empty():
     '''If no ds9 instance is running, ds9_openlist raises an exception'''
-    pyds9.ds9_openlist()
+    with pytest.raises(ValueError,
+                       match='no active ds9 found for target: DS9:*'):
+        pyds9.ds9_openlist()
 
 
 def test_ds9_openlist(run_ds9s):
@@ -129,13 +141,28 @@ def test_ds9_openlist(run_ds9s):
     with run_ds9s(*names):
         ds9s = pyds9.ds9_openlist()
 
-    target_is_id = [ds9.target == ds9.id for ds9 in ds9s]
-
     assert len(ds9s) == len(names)
-    assert sum(target_is_id) == 2
 
+    # It is not obvious to DJB what this test was meant to do
+    # since the .target and .id field values are very different.
+    #
+    # target_is_id = [ds9.target == ds9.id for ds9 in ds9s]
+    # assert sum(target_is_id) == 2
 
-def test_ds9_get_fits(monkeypatch, ds9_obj, test_fits):
+    # I have replaced them by a simple set check that the
+    # expected names are returned.
+    #
+    expected = {"DS9:" + n for n in names}
+    got = {d.target for d in ds9s}
+    assert expected == got
+
+def test_ds9_get_fits_empty(ds9_obj):
+    '''get_fits when there is no file loaded'''
+
+    empty = ds9_obj.get_fits()
+    assert empty is None
+
+def test_ds9_get_fits(ds9_obj, test_fits):
     '''get a fits file as an astropy fits object'''
 
     ds9_obj.set('file {}'.format(test_fits))
@@ -152,14 +179,15 @@ def test_ds9_get_fits(monkeypatch, ds9_obj, test_fits):
     assert diff.identical
 
 
-# TODO: change this test so that it passes when an error is raised
-@pytest.mark.xfail(raises=ValueError, reason='Not an astropy hdu')
 def test_ds9_set_fits_fail(ds9_obj):
     '''set_fits wants an astropy HDUList'''
-    ds9_obj.set_fits('random_type')
+
+    with pytest.raises(ValueError,
+                       match='The input must be an astropy HDUList'):
+        ds9_obj.set_fits('random_type')
 
 
-def test_ds9_set_fits(monkeypatch, tmpdir, ds9_obj, test_fits):
+def test_ds9_set_fits(tmpdir, ds9_obj, test_fits):
     '''Set the astropy fits'''
 
     with fits.open(test_fits.strpath) as hdul,\
@@ -188,20 +216,22 @@ def test_get_arr2np(ds9_obj, test_data_dir, fits_name):
     fits_file = test_data_dir.join(fits_name)
     ds9_obj.set('file {}'.format(fits_file))
 
-    arr = ds9_obj.get_arr2np()
+    with pytest.warns(None) as warn_records:
+        arr = ds9_obj.get_arr2np()
+
+    assert len(warn_records) == 0
 
     fits_data = fits.getdata(fits_file.strpath)
 
     np.testing.assert_array_equal(arr, fits_data)
 
 
-# TODO: change this test so that it passes when an error is raised
-@pytest.mark.xfail(raises=ValueError,
-                   reason='Not a numpy array or not valid shape')
 @parametrize('input_', ['random_type', np.arange(5)])
 def test_ds9_set_np2arr_fail(tmpdir, ds9_obj, input_):
     '''Set the passing wrong arrays'''
-    ds9_obj.set_np2arr(input_)
+
+    with pytest.raises(ValueError):
+        ds9_obj.set_np2arr(input_)
 
 
 @fits_names
@@ -222,17 +252,22 @@ def test_ds9_set_np2arr(tmpdir, ds9_obj, test_data_dir, fits_name):
     np.testing.assert_array_equal(fits_data, fits.getdata(out_fits.strpath))
 
 
-# TODO: split into two tests and check that an error is raised when
-#       expected
-@parametrize('action, args',
-             [(getattr, ()),
-              pytest.param(setattr, (42, ), marks=xfail_attribute_error)
-              ])
 @parametrize('attr', ['target', 'id', 'method'])
-def test_ds9_readonly_props(ds9_obj, action, args, attr):
+def test_ds9_readonly_props(ds9_obj, attr):
     '''Make sure that readonly attributes are such'''
 
-    action(ds9_obj, attr, *args)
+    # we can read them
+    getattr(ds9_obj, attr)
+
+
+@parametrize('attr', ['target', 'id', 'method'])
+def test_ds9_readonly_props_fail(ds9_obj, attr):
+    '''Make sure that readonly attributes are such'''
+
+    # We can not set them
+    with pytest.raises(AttributeError,
+                       match="can't set attribute"):
+        setattr(ds9_obj, attr, 41)
 
 
 def test_ds9_extra_prop(ds9_title):
@@ -250,3 +285,18 @@ def test_ds9_extra_prop(ds9_title):
     ds9 = DS9_(target='*' + ds9_title + '*')
     a = ds9.frame
     ds9.frame = int(a) + 1
+
+
+def test_ds9_invalid_xpa_get(ds9_obj):
+    """Ensure we report errors correctly with an invalid command"""
+
+    with pytest.raises(ValueError,
+                       match=r'XPA\$ERROR undefined command for this xpa'):
+        ds9_obj.get(INVALID_XPA_METHOD)
+
+def test_ds9_invalid_xpa_set(ds9_obj):
+    """Ensure we report errors correctly with an invalid command"""
+
+    with pytest.raises(ValueError,
+                       match=r'XPA\$ERROR undefined command for this xpa'):
+        ds9_obj.set(INVALID_XPA_METHOD)

@@ -5,6 +5,7 @@ version 1.9     TBD
 		Remove support for pyfits: the set_pyfits and get_pyfits
 	        methods have been removed and set_fits/get_fits should be
 	        used instead.
+	        get_fits now returns None if no file is loaded in DS9.
 
 version github	September 24, 2015
 		remove ds9.py

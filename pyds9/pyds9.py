@@ -651,10 +651,14 @@ class DS9(object):
         Returns
         -------
         :class:`io.BytesIO`
-            file-like object containing the FITS data
+            file-like object containing the FITS data, or None if
+            there is no data.
+
         '''
         self._selftest()
         imgData = self.get('fits')
+        if imgData == []:
+            return None
         return BytesIO(string_to_bytes(imgData))
 
     def _hdulist_to_ds9_fits(self, hdul):
@@ -697,9 +701,17 @@ class DS9(object):
         Returns
         -------
         :class:`astropy.io.fits.HDUList`
-            FITS object
+            FITS object or None if no file is available
+
+        Notes
+        -----
+        Prior to pyds9 1.9 the behavior when there was no file
+        was not specified.
         """
-        return fits.open(self._ds9_fits_to_bytes())
+        idata = self._ds9_fits_to_bytes()
+        if idata is None:
+            return None
+        return fits.open(idata)
 
     def set_fits(self, hdul):
         """Display an astropy FITS in ds9.
@@ -758,9 +770,9 @@ class DS9(object):
         bp = int(self.get('fits bitpix'))
         s = self.get('array')
         if d > 1:
-            arr = numpy.fromstring(s, dtype=_bp2np(bp)).reshape((d, h, w))
+            arr = numpy.frombuffer(s, dtype=_bp2np(bp)).reshape((d, h, w))
         else:
-            arr = numpy.fromstring(s, dtype=_bp2np(bp)).reshape((h, w))
+            arr = numpy.frombuffer(s, dtype=_bp2np(bp)).reshape((h, w))
         # if sys.byteorder != 'big': arr.byteswap(True)
         return arr
 
