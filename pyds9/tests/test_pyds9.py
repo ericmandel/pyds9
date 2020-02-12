@@ -153,6 +153,12 @@ def test_ds9_openlist(run_ds9s):
     got = {d.target for d in ds9s}
     assert expected == got
 
+def test_ds9_get_fits_empty(ds9_obj):
+    '''get_fits when there is no file loaded'''
+
+    empty = ds9_obj.get_fits()
+    assert empty is None
+
 def test_ds9_get_fits(ds9_obj, test_fits):
     '''get a fits file as an astropy fits object'''
 
