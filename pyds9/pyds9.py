@@ -758,9 +758,9 @@ class DS9(object):
         bp = int(self.get('fits bitpix'))
         s = self.get('array')
         if d > 1:
-            arr = numpy.fromstring(s, dtype=_bp2np(bp)).reshape((d, h, w))
+            arr = numpy.frombuffer(s, dtype=_bp2np(bp)).reshape((d, h, w))
         else:
-            arr = numpy.fromstring(s, dtype=_bp2np(bp)).reshape((h, w))
+            arr = numpy.frombuffer(s, dtype=_bp2np(bp)).reshape((h, w))
         # if sys.byteorder != 'big': arr.byteswap(True)
         return arr
 

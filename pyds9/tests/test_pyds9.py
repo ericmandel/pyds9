@@ -207,7 +207,10 @@ def test_get_arr2np(ds9_obj, test_data_dir, fits_name):
     fits_file = test_data_dir.join(fits_name)
     ds9_obj.set('file {}'.format(fits_file))
 
-    arr = ds9_obj.get_arr2np()
+    with pytest.warns(None) as warn_records:
+        arr = ds9_obj.get_arr2np()
+
+    assert len(warn_records) == 0
 
     fits_data = fits.getdata(fits_file.strpath)
 
