@@ -22,6 +22,9 @@ type_mapping = parametrize('bitpix, dtype ',
                             (-16, np.dtype(np.uint16))
                             ])
 
+# Hopefully DS9 will never support this particular command...
+INVALID_XPA_METHOD = 'made-up-command'
+
 
 @pytest.fixture
 def run_ds9s():
@@ -282,3 +285,18 @@ def test_ds9_extra_prop(ds9_title):
     ds9 = DS9_(target='*' + ds9_title + '*')
     a = ds9.frame
     ds9.frame = int(a) + 1
+
+
+def test_ds9_invalid_xpa_get(ds9_obj):
+    """Ensure we report errors correctly with an invalid command"""
+
+    with pytest.raises(ValueError,
+                       match=r'XPA\$ERROR undefined command for this xpa'):
+        ds9_obj.get(INVALID_XPA_METHOD)
+
+def test_ds9_invalid_xpa_set(ds9_obj):
+    """Ensure we report errors correctly with an invalid command"""
+
+    with pytest.raises(ValueError,
+                       match=r'XPA\$ERROR undefined command for this xpa'):
+        ds9_obj.set(INVALID_XPA_METHOD)
