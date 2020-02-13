@@ -3,12 +3,19 @@ import contextlib
 import random
 import subprocess as sp
 import time
+import os
 
 from astropy.io import fits
 import numpy as np
 import pytest
 
 from pyds9 import pyds9
+
+# This does not validate whether DISPLAY is meaningful, just if it
+# is set
+#
+needs_display = pytest.mark.skipif('DISPLAY' not in os.environ,
+                                   reason='DISPLAY environmnet variable is not set')
 
 parametrize = pytest.mark.parametrize
 
@@ -116,6 +123,7 @@ def test_ds9_targets_empty():
     assert targets is None
 
 
+@needs_display
 def test_ds9_targets(run_ds9s):
     '''ds9_targets returns open ds9 names'''
     names = ['test1', 'test1', 'test2']
@@ -135,6 +143,7 @@ def test_ds9_openlist_empty():
         pyds9.ds9_openlist()
 
 
+@needs_display
 def test_ds9_openlist(run_ds9s):
     '''ds9_openlist returns running ds9 instances'''
     names = ['test4', 'test5', 'test6']
@@ -156,12 +165,14 @@ def test_ds9_openlist(run_ds9s):
     got = {d.target for d in ds9s}
     assert expected == got
 
+@needs_display
 def test_ds9_get_fits_empty(ds9_obj):
     '''get_fits when there is no file loaded'''
 
     empty = ds9_obj.get_fits()
     assert empty is None
 
+@needs_display
 def test_ds9_get_fits(ds9_obj, test_fits):
     '''get a fits file as an astropy fits object'''
 
@@ -179,6 +190,7 @@ def test_ds9_get_fits(ds9_obj, test_fits):
     assert diff.identical
 
 
+@needs_display
 def test_ds9_set_fits_fail(ds9_obj):
     '''set_fits wants an astropy HDUList'''
 
@@ -187,6 +199,7 @@ def test_ds9_set_fits_fail(ds9_obj):
         ds9_obj.set_fits('random_type')
 
 
+@needs_display
 def test_ds9_set_fits(tmpdir, ds9_obj, test_fits):
     '''Set the astropy fits'''
 
@@ -210,6 +223,7 @@ def test_ds9_set_fits(tmpdir, ds9_obj, test_fits):
 fits_names = parametrize('fits_name', ['test.fits', 'test_3D.fits'])
 
 
+@needs_display
 @fits_names
 def test_get_arr2np(ds9_obj, test_data_dir, fits_name):
     '''Get the data on ds9 as a numpy array'''
@@ -226,6 +240,7 @@ def test_get_arr2np(ds9_obj, test_data_dir, fits_name):
     np.testing.assert_array_equal(arr, fits_data)
 
 
+@needs_display
 @parametrize('input_', ['random_type', np.arange(5)])
 def test_ds9_set_np2arr_fail(tmpdir, ds9_obj, input_):
     '''Set the passing wrong arrays'''
@@ -234,6 +249,7 @@ def test_ds9_set_np2arr_fail(tmpdir, ds9_obj, input_):
         ds9_obj.set_np2arr(input_)
 
 
+@needs_display
 @fits_names
 def test_ds9_set_np2arr(tmpdir, ds9_obj, test_data_dir, fits_name):
     '''Set the astropy fits'''
@@ -252,6 +268,7 @@ def test_ds9_set_np2arr(tmpdir, ds9_obj, test_data_dir, fits_name):
     np.testing.assert_array_equal(fits_data, fits.getdata(out_fits.strpath))
 
 
+@needs_display
 @parametrize('attr', ['target', 'id', 'method'])
 def test_ds9_readonly_props(ds9_obj, attr):
     '''Make sure that readonly attributes are such'''
@@ -260,6 +277,7 @@ def test_ds9_readonly_props(ds9_obj, attr):
     getattr(ds9_obj, attr)
 
 
+@needs_display
 @parametrize('attr', ['target', 'id', 'method'])
 def test_ds9_readonly_props_fail(ds9_obj, attr):
     '''Make sure that readonly attributes are such'''
@@ -270,6 +288,7 @@ def test_ds9_readonly_props_fail(ds9_obj, attr):
         setattr(ds9_obj, attr, 41)
 
 
+@needs_display
 def test_ds9_extra_prop(ds9_title):
     '''Regression test to make sure that issues like #34 don't happen
     anymore'''
@@ -287,6 +306,7 @@ def test_ds9_extra_prop(ds9_title):
     ds9.frame = int(a) + 1
 
 
+@needs_display
 def test_ds9_invalid_xpa_get(ds9_obj):
     """Ensure we report errors correctly with an invalid command"""
 
@@ -294,6 +314,7 @@ def test_ds9_invalid_xpa_get(ds9_obj):
                        match=r'XPA\$ERROR undefined command for this xpa'):
         ds9_obj.get(INVALID_XPA_METHOD)
 
+@needs_display
 def test_ds9_invalid_xpa_set(ds9_obj):
     """Ensure we report errors correctly with an invalid command"""
 
