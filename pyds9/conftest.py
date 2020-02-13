@@ -57,3 +57,18 @@ def test_data_dir():
 def test_fits(test_data_dir):
     '''Returns the name of the test fits file as a py.path.local object'''
     return test_data_dir.join('test.fits')
+
+
+def pytest_report_header(config):
+    """Report the DISPLAY setting.
+
+    This is mainly to help identify issues with the display
+    on CI services.
+    """
+    import os
+    try:
+        display = os.environ['DISPLAY']
+    except KeyError:
+        display = "< UNSET >"
+
+    return "pyds9: DISPLAY={}".format(display)
