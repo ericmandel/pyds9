@@ -86,7 +86,7 @@ def get_xpans_ds9():
                   os.path.join(user_dir, 'Applications'),
                   os.path.join(user_dir, 'Desktop')]:
             for app_name in app_names:
-                ds9_app_dir = os.path.join(p, app_name):
+                ds9_app_dir = os.path.join(p, app_name)
                 if os.path.exists(ds9_app_dir):
                     ds9 = ['open', '-a', ds9_app_dir, '--args']
                     break
