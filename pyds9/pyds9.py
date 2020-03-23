@@ -80,13 +80,13 @@ def get_xpans_ds9():
         # look for a "SAOImage DS9.app" directory in ``/Applications``,
         # ``$HOME`` and ``$HOME/Applications``. If it's found use the mac
         # ``open`` command
-        app_names = ["SAOImage DS9.app", "SAOImageDS9.app"]
+        app_names = ["SAOImageDS9.app", "SAOImage DS9.app"]
         user_dir = os.path.expanduser('~')
         for p in ['/Applications', user_dir,
                   os.path.join(user_dir, 'Applications'),
                   os.path.join(user_dir, 'Desktop')]:
             for app_name in app_names:
-            ds9_app_dir = os.path.join(p, app_name):
+                ds9_app_dir = os.path.join(p, app_name):
                 if os.path.exists(ds9_app_dir):
                     ds9 = ['open', '-a', ds9_app_dir, '--args']
                     break
