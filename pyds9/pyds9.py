@@ -20,7 +20,6 @@ import os
 import time
 import array
 import platform
-import textwrap as tw
 import warnings
 try:
     from shutil import which
@@ -246,6 +245,31 @@ def bytes_to_string(byte):
             return byte
 
 
+DS9_ALREADY_STARTED = """
+An instance of ds9 was found to be running before we could
+start the 'xpans' name server. You will need to perform a
+bit of manual intervention in order to connect this
+existing ds9 to Python.
+
+For ds9 version 5.7 and beyond, simply register the
+existing ds9 with the xpans name server by selecting the
+ds9 File->XPA->Connect menu option. Your ds9 will now be
+fully accessible to pyds9 (e.g., it appear in the list
+returned by the ds9_targets() routine).
+
+For ds9 versions prior to 5.7, you cannot (easily) register
+with xpans, but you can view ds9's File->XPA Information
+menu option and pass the value associated with XPA_METHOD
+directly to the Python DS9() constructor, e.g.:
+
+    d = DS9('a000101:12345')
+
+The good news is that new instances of ds9 will be
+registered with xpans, and will be known to ds9_targets()
+and the DS9() constructor.
+"""
+
+
 # if xpans is not running, start it up
 
 def ds9_xpans():
@@ -268,34 +292,42 @@ def ds9_xpans():
 
     # start up xpans
     subprocess.Popen([_fname, "-e"])
-    # if ds9 is already running, issue a warning
+
+    # if ds9 is already running, issue a warning; the tricky part is
+    # in determining what constitutes a DS9 process - e.g. see
+    # https://github.com/ericmandel/pyds9/issues/96
+    #
     p = subprocess.Popen(['ps', '-A'], stdout=subprocess.PIPE,
                          universal_newlines=True)
-    pslist = p.communicate()[0]   # get the std out
-    if 'ds9' in pslist:
-        print(tw.dedent("""
-            An instance of ds9 was found to be running before we could
-            start the 'xpans' name server. You will need to perform a
-            bit of manual intervention in order to connect this
-            existing ds9 to Python.
+    pslist = p.communicate()[0]
 
-            For ds9 version 5.7 and beyond, simply register the
-            existing ds9 with the xpans name server by selecting the
-            ds9 File->XPA->Connect menu option. Your ds9 will now be
-            fully accessible to pyds9 (e.g., it appear in the list
-            returned by the ds9_targets() routine).
+    # Simple approach (assuming this is not time critical):
+    #  - break up by line
+    #  - look for 'ds9'
+    #  - exclude known false hits
+    #
+    for pline in pslist.split('\n'):
+        idx = pline.find('ds9')
+        if idx == -1:
+            continue
 
-            For ds9 versions prior to 5.7, you cannot (easily) register
-            with xpans, but you can view ds9's File->XPA Information
-            menu option and pass the value associated with XPA_METHOD
-            directly to the Python DS9() constructor, e.g.:
+        assert idx != 0
 
-                d = DS9('a000101:12345')
+        # We want ds9 to refer to the command, not a directory name.
+        # This fails to catch an application running in
+        # '../foo/silly ds9 rabbit/bar/...'.
+        #
+        if pline[idx - 1] not in ' /':
+            continue
 
-            The good news is that new instances of ds9 will be
-            registered with xpans, and will be known to ds9_targets()
-            and the DS9() constructor.
-            """))
+        # This still does not catch '../foo/silly ds9 rabbit/bar/...'
+        # but should catch '.../pyds9/xpans -e'
+        #
+        prest = pline[idx + 3:]
+        if prest == '' or prest[0] == ' ':
+            print(DS9_ALREADY_STARTED)
+            break
+
     return 1
 
 
