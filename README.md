@@ -3,6 +3,11 @@
 [![Build Status](https://travis-ci.org/ericmandel/pyds9.svg?branch=master)](https://travis-ci.org/ericmandel/pyds9)
 ![Python version](https://img.shields.io/badge/Python-3.5,3.6,3.7-green.svg?style=flat)
 
+*NB: The pyds9 project does not currently have a Python expert to help
+with maintenance. I can deal with XPA-related problems, but not Python
+problems. If you are a Python expert and want to get involved, please
+let me know ... Eric*
+
 The [XPA messaging system](https://github.com/ericmandel/xpa) provides
 seamless communication between many kinds of Unix programs, including Tcl/Tk
 programs such as ds9. The ``pyds9`` module uses a Python interface to XPA to
