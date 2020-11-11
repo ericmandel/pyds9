@@ -12,13 +12,28 @@ import ctypes.util
 
 # look for the shared library in sys.path
 def _find_shlib(_libbase):
+    # Search relative to the interpreter, then relative to the xpa module
+    dirs_ = [
+        os.path.join(sys.prefix, 'lib'),
+        os.path.join(sys.prefix, 'lib64'),
+        os.path.dirname(__file__)
+    ]
+    pattern = 'lib' + _libbase + '*'
+    libxpa = []
 
-    dir_ = os.path.dirname(__file__)
-    libxpa = glob.glob(os.path.join(dir_, "libxpa*so*"))
+    for d in dirs_:
+        libxpa.append(glob.glob(os.path.join(d, pattern)))
+
     if libxpa:
-        return libxpa[0]
-    else:
-        return None
+        # Flatten search results, and return first match
+        # (Ignores static archives)
+        libxpa = [x for y in libxpa
+                  for x in y if not x.endswith('.a')
+                  or not x.endswith('.lib')]
+        if libxpa:
+            return libxpa[0]
+
+    return None
 
 _libpath = _find_shlib('xpa')
 if _libpath:
