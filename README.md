@@ -42,6 +42,7 @@ packages:
 
 * openSUSE: sudo zypper install libXt-devel
 * Ubuntu: sudo apt-get install libxt-dev
+* Fedora: sudo dnf install libXt-devel
 
 To run:
 
